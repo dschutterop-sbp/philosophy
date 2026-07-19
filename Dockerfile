@@ -1,7 +1,10 @@
-FROM nginx:1.27-alpine
+FROM node:22-alpine
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY index.html /usr/share/nginx/html/index.html
-COPY src /usr/share/nginx/html/src
+WORKDIR /app
+COPY package.json index.html ./
+COPY src ./src
+COPY server ./server
+RUN mkdir -p /app/data
 
-EXPOSE 80
+EXPOSE 8080
+CMD ["npm", "start"]

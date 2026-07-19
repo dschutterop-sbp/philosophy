@@ -1,5 +1,3 @@
-import { assessOpeningDecision, conformanceCheck, createDirections, interpret, validateArtefact } from "./pipeline.js";
-
 const $ = (selector) => document.querySelector(selector);
 const defaultImage = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='1080' height='1920'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='%23666a65'/><stop offset='1' stop-color='%231f2927'/></linearGradient></defs><rect fill='url(%23g)' width='100%' height='100%'/><path d='M0 1250 C260 1170 550 1310 1080 1190 V1920 H0Z' fill='%236d8786' opacity='.5'/><rect x='180' y='810' width='720' height='410' rx='10' fill='%23dbc9a4'/><rect x='130' y='700' width='820' height='130' fill='%23252e2b'/><text x='540' y='980' text-anchor='middle' fill='%23252e2b' font-size='54' font-family='sans-serif'>IL TIRATORE</text><text x='540' y='1060' text-anchor='middle' fill='%23252e2b' font-size='28' font-family='sans-serif'>UPLOAD A QUAY PHOTO</text></svg>`);
 
@@ -23,8 +21,8 @@ function readContext() {
 }
 
 function renderChecks(context, direction, interpretation) {
-  const validation = validateArtefact(context, direction);
-  const conformance = conformanceCheck(direction, interpretation);
+  const validation = direction.validation;
+  const conformance = direction.semanticConformance;
   $("#validation").innerHTML = `<h3>Deterministic validation</h3><p class="${validation.valid ? "pass" : "fail"}">${validation.valid ? "Passes: hours and flavours are present; no forbidden copy." : `Blocked: ${[...validation.missing, ...validation.violations].join(" ")}`}</p>`;
   $("#conformance").innerHTML = `<h3>Semantic conformance</h3><p class="${conformance.conforms ? "pass" : "fail"}">${conformance.conforms ? "Passes: no urgency, heat relief or seasonal cliché." : `Blocked: ${conformance.violations.join(" ")}`}</p>`;
   $("#publish").disabled = !(validation.valid && conformance.conforms);
@@ -70,25 +68,33 @@ $("#photo").addEventListener("change", (event) => {
   reader.readAsDataURL(file);
 });
 
-$("#prepare").addEventListener("click", () => {
-  activeContext = readContext();
-  const opening = assessOpeningDecision(activeContext);
-  $("#opening-result").textContent = opening.isOpen ? "Opening decision: cart opens. The interpretation can now be reviewed." : "Opening decision: cart stays closed. No Story is prepared.";
-  if (!opening.isOpen || activeContext.products.length === 0) {
-    $("#review").classList.add("hidden");
-    return;
-  }
-  activeInterpretation = interpret(activeContext);
+$("#prepare").addEventListener("click", async () => {
+  const button = $("#prepare");
+  button.disabled = true; button.textContent = "Reading live context…";
+  try {
+    const response = await fetch("/api/prepare", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(readContext()) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Preparation failed.");
+    activeContext = result.context;
+    $("#temperature").value = activeContext.temperatureC;
+    $("#forecast").value = activeContext.forecastC;
+    $("#events").value = activeContext.blockingEvents;
+    $("#day").value = activeContext.day;
+    $("#opening-result").textContent = result.opening.isOpen ? "Live opening decision: cart opens. AI interpretation is ready for review." : "Live opening decision: cart stays closed. No Story is prepared.";
+    if (!result.opening.isOpen || result.interpretation.recommendation === "do_not_publish") { $("#review").classList.add("hidden"); return; }
+    activeInterpretation = result.interpretation;
   $("#observation").textContent = activeInterpretation.observation;
   $("#relevance").textContent = activeInterpretation.organisationalRelevance;
   $("#semantic-direction").textContent = activeInterpretation.semanticDirection;
   $("#rejected-frames").textContent = activeInterpretation.rejectedFrames.join(" · ");
   $("#avoid").textContent = activeInterpretation.avoid.join(" · ");
   $("#story-image").src = photoUrl;
-  renderDirections(createDirections(activeContext, activeInterpretation));
+  renderDirections(result.directions);
   $("#decision-result").textContent = "";
   $("#review").classList.remove("hidden");
-  $("#review").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("#review").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) { $("#opening-result").textContent = `Could not prepare the live Story: ${error.message}`; $("#review").classList.add("hidden");
+  } finally { button.disabled = false; button.textContent = "Prepare review"; }
 });
 
 $("#iterate").addEventListener("click", () => { $("#decision-result").textContent = "Iteration requested. Return to the selected direction; the interpretation remains intact."; });

@@ -1,7 +1,6 @@
 .git
-.github
 .DS_Store
 node_modules
 npm-debug.log
-test
-README.md
+.env
+data

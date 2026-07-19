@@ -4,11 +4,18 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${STORY_PORT:-8080}:80"
+      - "${STORY_PORT:-8080}:8080"
+    env_file:
+      - .env
+    volumes:
+      - story_audit:/app/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/api/health >/dev/null 2>&1"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 5s
+
+volumes:
+  story_audit:
