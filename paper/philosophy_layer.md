@@ -67,6 +67,8 @@ The specific wording is unimportant. What matters is that an interpretation was 
 
 ---
 
+<a id="paper-philosophy-layer"></a>
+
 # 2. The Philosophy Layer
 
 **The Philosophy layer is a versioned decision layer that transforms verified context into an explicit interpretation of relevance, intent and appropriate action before execution begins.**
@@ -190,6 +192,8 @@ The contribution is not a new model capability. It is a disciplined architecture
 
 ---
 
+<a id="paper-architecture"></a>
+
 # 5. Architecture
 
 ```text
@@ -219,6 +223,8 @@ The boundaries can be stated compactly:
 
 The boundaries are not claims that any layer is value-free. A Skill still encodes choices about validity, approval and required notices. The separation concerns the *kind* of judgement each layer is allowed to exercise.
 
+<a id="paper-creative-direction"></a>
+
 ## 5.1 Creative Direction Is a Bounded Exploration, Not a Hidden Judge
 
 Earlier drafts left this stage underspecified, which risked reintroducing exactly the invisible judgement the architecture exists to eliminate. The stage is therefore defined as strictly as its neighbours.
@@ -240,6 +246,8 @@ Each candidate declares which prohibited direction it sits closest to. That inve
 **Selection semantics** are explicit. By default a human selects among candidates; this is a cheap decision made on short structured texts, not on rendered artefacts. A configuration may allow automatic selection for low-stakes, high-frequency use, but only with the semantic conformance check active and the unselected candidates logged, so the choice remains auditable rather than silent.
 
 **Boundaries.** Creative Direction inherits the interpretation's `semantic_direction` and `avoid` list verbatim and may not weaken them. It may not introduce facts, products, prices or claims absent from verified context. It decides *how* meaning is expressed; it never revisits *whether* or *why*.
+
+<a id="paper-semantic-conformance"></a>
 
 ## 5.2 Semantic Conformance: Closing the Gap Between Interpretation and Artefact
 
@@ -269,6 +277,8 @@ approval_token = sign(canonical_hash(approval_manifest))
 ```
 
 If the artefact changes, the approval is invalid. If the interpretation changes, the approval is equally invalid. The system cannot present one rationale for review and publish under another. This extends the original guarantee from "the exact artefact" to "the exact artefact for the exact reason" without pretending that this paper specifies a complete cryptographic protocol.
+<a id="paper-precedence"></a>
+
 ## 5.3 Precedence and Authorised Override
 
 When layers conflict:
@@ -288,6 +298,8 @@ A Philosophy may favour visual simplicity, but it may not remove a legally requi
 Human authority is role-bound rather than absolute. An authorised person may override operational defaults, Philosophy recommendations and model choices. They may not override safety, law, verified facts or hard governance controls merely by issuing a prompt. Changing those controls requires the appropriate governance action, permissions and audit trail.
 
 The operational success metric of a well-specified Philosophy is that authorised overrides become *rarer*, never that they become impossible. An override also remains subject to exact-state approval. Changing the artefact or its rationale invalidates the existing token, after which the resulting pair must be approved as a new state. Authorised human control and exact-state binding are complementary, not in tension.
+<a id="paper-versioning"></a>
+
 ## 5.4 Versioning
 
 Every published artefact records the versions that produced it:
@@ -319,6 +331,8 @@ In larger organisations, access should be role-based. Material changes should re
 
 ---
 
+<a id="paper-silence"></a>
+
 # 6. Silence Is a Decision
 
 Automation biases towards action: a trigger fires, so the system must produce something. Otherwise the trigger feels wasted.
@@ -337,6 +351,8 @@ Routine events, recently covered ground, poor timing and having nothing distinct
 The mirror principle applies to the Philosophy itself: **anti-patterns are first-class inputs**. What the organisation refuses to become is often more operationally useful than what it aspires to be because generative models reproduce category conventions with ruthless efficiency. A Philosophy that cannot reject anything provides no value.
 
 ---
+
+<a id="paper-testing"></a>
 
 # 7. Testing and Evaluation
 
