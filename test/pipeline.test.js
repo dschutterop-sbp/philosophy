@@ -1,6 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { assessOpeningDecision, conformanceCheck, createDirections, interpret, validateArtefact } from "../src/pipeline.js";
+import { config } from "../server/config.js";
+
+const liveEnvKeys = ["OPENAI_API_KEY", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN", "WEATHER_LATITUDE", "WEATHER_LONGITUDE"];
+const liveCredentials = { OPENAI_API_KEY: "key", GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret", GOOGLE_REFRESH_TOKEN: "token" };
+
+function withEnv(overrides, fn) {
+  const original = Object.fromEntries(liveEnvKeys.map((key) => [key, process.env[key]]));
+  try {
+    for (const key of liveEnvKeys) delete process.env[key];
+    Object.assign(process.env, overrides);
+    return fn();
+  } finally {
+    for (const key of liveEnvKeys) {
+      if (original[key] === undefined) delete process.env[key];
+      else process.env[key] = original[key];
+    }
+  }
+}
 
 const context = {
   day: "Saturday", temperatureC: 23, forecastC: 24, blockingEvents: 0,
@@ -30,4 +48,24 @@ test("conformance blocks a sunshine cliche despite valid hours", () => {
   const badDirection = { concept: "cart", caption: "Beat the heat! Open 13:30-18:00\\nAperol Spritz Sorbet · Limoncello Spritz Sorbet", fit: "" };
   assert.equal(validateArtefact(context, badDirection).valid, false);
   assert.equal(conformanceCheck(badDirection, interpretation).conforms, false);
+});
+
+test("config flags empty (but present) weather coordinates as missing for live mode", () => {
+  const settings = withEnv({ ...liveCredentials, WEATHER_LATITUDE: "", WEATHER_LONGITUDE: "" }, () => config());
+  assert.equal(settings.liveReady, false);
+  assert.ok(settings.missingLive.includes("WEATHER_LATITUDE/WEATHER_LONGITUDE"));
+});
+
+test("config flags absent weather coordinates as missing for live mode", () => {
+  const settings = withEnv(liveCredentials, () => config());
+  assert.equal(settings.liveReady, false);
+  assert.ok(settings.missingLive.includes("WEATHER_LATITUDE/WEATHER_LONGITUDE"));
+});
+
+test("config is live-ready once credentials and numeric coordinates are set", () => {
+  const settings = withEnv({ ...liveCredentials, WEATHER_LATITUDE: "52.37", WEATHER_LONGITUDE: "4.89" }, () => config());
+  assert.equal(settings.liveReady, true);
+  assert.deepEqual(settings.missingLive, []);
+  assert.equal(settings.latitude, 52.37);
+  assert.equal(settings.longitude, 4.89);
 });
