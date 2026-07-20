@@ -69,7 +69,7 @@ createServer(async (request, response) => {
       if (!target) return send(response, 404, { error: "Not found" });
       try {
         const file = await readFile(target);
-        response.writeHead(200, { "content-type": mime(pathname) }); response.end(file); return;
+        response.writeHead(200, { "content-type": mime(pathname), "cache-control": "no-store" }); response.end(file); return;
       } catch (error) {
         if (error.code === "ENOENT") return send(response, 404, { error: "Not found" });
         throw error;

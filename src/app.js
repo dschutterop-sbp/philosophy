@@ -46,6 +46,7 @@ function setBrand(next) {
     button.classList.toggle("selected", isSelected);
     button.setAttribute("aria-checked", String(isSelected));
   });
+  document.body.classList.toggle("unbranded", brand === "unbranded");
   document.title = brandCopy[brand].title;
   $("#masthead-eyebrow").textContent = brandCopy[brand].eyebrow;
   const credit = $("#story-credit");
