@@ -1,11 +1,11 @@
-const required = ["OPENAI_API_KEY", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN"];
+// Only demo mode (static data, no external calls) can run without these; live mode needs all of them.
+const liveRequired = ["OPENAI_API_KEY", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN"];
 
 export function config() {
-  const missing = required.filter((name) => !process.env[name]);
-  if (missing.length) throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
   const latitude = Number(process.env.WEATHER_LATITUDE);
   const longitude = Number(process.env.WEATHER_LONGITUDE);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) throw new Error("WEATHER_LATITUDE and WEATHER_LONGITUDE must be numbers.");
+  const missingLive = liveRequired.filter((name) => !process.env[name]);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) missingLive.push("WEATHER_LATITUDE/WEATHER_LONGITUDE");
   return {
     timezone: process.env.TIMEZONE || "Europe/Amsterdam",
     latitude, longitude,
@@ -16,5 +16,7 @@ export function config() {
     googleClientId: process.env.GOOGLE_CLIENT_ID,
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
     googleRefreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+    liveReady: missingLive.length === 0,
+    missingLive,
   };
 }

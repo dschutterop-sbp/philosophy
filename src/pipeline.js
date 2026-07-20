@@ -20,19 +20,9 @@ export function assessOpeningDecision(context) {
   return { checks, isOpen: checks.every((check) => check.passed) };
 }
 
+// Assumes the opening gate (assessOpeningDecision) has already passed; the
+// caller is responsible for not reaching an interpretation when the cart is closed.
 export function interpret(context) {
-  const opening = assessOpeningDecision(context);
-  if (!opening.isOpen) {
-    return {
-      recommendation: "do_not_publish",
-      reason: "The cart is not opening under the supplied operating conditions.",
-      contextEvidence: opening.checks.filter((check) => !check.passed).map((check) => check.label),
-      principlesApplied: ["communication.silence_is_a_decision"],
-      semanticDirection: null,
-      avoid: [],
-    };
-  }
-
   return {
     recommendation: "develop_direction",
     decisionClass: "audience_moment_extension",

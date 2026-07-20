@@ -16,6 +16,11 @@
 
       <section id="setup" class="step" aria-labelledby="setup-title">
         <div class="step-heading"><span>01</span><h2 id="setup-title">Verified context</h2></div>
+        <div class="mode-toggle" id="mode-toggle" role="radiogroup" aria-label="Philosophy mode">
+          <button type="button" class="mode-option selected" data-mode="demo" role="radio" aria-checked="true">Demo · static data</button>
+          <button type="button" class="mode-option" data-mode="live" role="radio" aria-checked="false">Live · agentic</button>
+        </div>
+        <p id="mode-description" class="mode-description">Demo mode runs the Philosophy layer locally against the values below. No weather, calendar or OpenAI calls are made.</p>
         <div class="context-grid">
           <label>Day<select id="day"><option>Saturday</option><option>Sunday</option><option>Friday</option></select></label>
           <label>Temperature <input id="temperature" type="number" value="23" min="-10" max="45" /> <small>°C</small></label>
@@ -37,7 +42,7 @@
         <div class="step-heading"><span>02</span><h2 id="review-title">First human gate</h2></div>
         <div class="interpretation-layout">
           <article class="interpretation">
-            <p class="eyebrow">Interpretation · v1.0.0</p>
+            <p class="eyebrow">Interpretation · v1.0.0 · <span id="mode-badge"></span></p>
             <h3 id="observation"></h3>
             <p id="relevance"></p>
             <dl>

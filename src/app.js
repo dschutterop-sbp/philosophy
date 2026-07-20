@@ -5,8 +5,31 @@ let photoUrl = defaultImage;
 let selectedDirection = null;
 let activeContext = null;
 let activeInterpretation = null;
+let mode = "demo";
 
 $("#story-image").src = defaultImage;
+
+const modeCopy = {
+  demo: { description: "Demo mode runs the Philosophy layer locally against the values below. No weather, calendar or OpenAI calls are made.", cta: "Evaluate static context…", badge: "Demo" },
+  live: { description: "Live mode reads real weather and calendar context, then applies the Philosophy layer agentically through OpenAI. The values below are overwritten by what is actually true right now.", cta: "Reading live context…", badge: "Live" },
+};
+
+function setMode(next) {
+  mode = next;
+  document.querySelectorAll(".mode-option").forEach((button) => {
+    const isSelected = button.dataset.mode === mode;
+    button.classList.toggle("selected", isSelected);
+    button.setAttribute("aria-checked", String(isSelected));
+  });
+  $("#mode-description").textContent = modeCopy[mode].description;
+  ["#temperature", "#forecast", "#events"].forEach((selector) => { $(selector).disabled = mode === "live"; });
+}
+
+$("#mode-toggle").addEventListener("click", (event) => {
+  const button = event.target.closest(".mode-option");
+  if (button) setMode(button.dataset.mode);
+});
+setMode(mode);
 
 function readContext() {
   return {
@@ -70,9 +93,9 @@ $("#photo").addEventListener("change", (event) => {
 
 $("#prepare").addEventListener("click", async () => {
   const button = $("#prepare");
-  button.disabled = true; button.textContent = "Reading live context…";
+  button.disabled = true; button.textContent = modeCopy[mode].cta;
   try {
-    const response = await fetch("/api/prepare", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(readContext()) });
+    const response = await fetch("/api/prepare", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...readContext(), mode }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Preparation failed.");
     activeContext = result.context;
@@ -80,7 +103,9 @@ $("#prepare").addEventListener("click", async () => {
     $("#forecast").value = activeContext.forecastC;
     $("#events").value = activeContext.blockingEvents;
     $("#day").value = activeContext.day;
-    $("#opening-result").textContent = result.opening.isOpen ? "Live opening decision: cart opens. AI interpretation is ready for review." : "Live opening decision: cart stays closed. No Story is prepared.";
+    $("#mode-badge").textContent = modeCopy[result.mode].badge;
+    const openingLabel = result.mode === "live" ? "Live opening decision" : "Demo opening decision";
+    $("#opening-result").textContent = result.opening.isOpen ? `${openingLabel}: cart opens. Interpretation is ready for review.` : `${openingLabel}: cart stays closed. No Story is prepared.`;
     if (!result.opening.isOpen || result.interpretation.recommendation === "do_not_publish") { $("#review").classList.add("hidden"); return; }
     activeInterpretation = result.interpretation;
   $("#observation").textContent = activeInterpretation.observation;
