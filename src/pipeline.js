@@ -22,13 +22,14 @@ export function interpret(context) {
     organisationalRelevance: "Avoid adding noise to an afternoon already well served.", semanticDirection: "Do not create an artefact.",
     rejectedFrames: ["mandatory_output"], avoid: ["repetition", "forced urgency"], principlesApplied: ["communication.silence_is_valid"],
   };
+  const alternative = (context.iteration || 1) > 1;
   return {
     recommendation: "develop_direction", reason: null, decisionClass: "audience_moment_extension",
-    observation: "A good afternoon is already drawing people to the canal and the road.",
+    observation: alternative ? "People passing the quay can encounter a small, well-made pause without changing their plans." : "A good afternoon is already drawing people to the canal and the road.",
     contextEvidence: ["cart_opened", `day:${context.day.toLowerCase()}`, `temperature_c:${context.temperatureC}`, `forecast_c:${context.forecastC}`, `opening_hours:${context.opensAt}-${context.closesAt}`, ...context.products.map((product) => `product:${product}`)],
     principlesApplied: ["audience.already_in_a_good_moment", "character.calm", "communication.no_forced_urgency", "character.precision"],
-    organisationalRelevance: "The cart is a small, exact addition to an afternoon already underway.",
-    semanticDirection: "Present the cart as a calm, natural stop in an afternoon by the water.",
+    organisationalRelevance: alternative ? "The cart rewards an existing route rather than asking people to make a special trip." : "The cart is a small, exact addition to an afternoon already underway.",
+    semanticDirection: alternative ? "Treat the cart as a quiet discovery along an afternoon route, not a destination call." : "Present the cart as a calm, natural stop in an afternoon by the water.",
     rejectedFrames: ["heat_relief", "urgency", "generic_seasonal_framing"],
     avoid: ["generic summer language", "discount messaging", "forced category cliches", "vintage-retro styling"],
   };

@@ -26,7 +26,7 @@ function send(response, status, value) { response.writeHead(status, { "content-t
 function publicFile(pathname) { try { const target = resolve(repoRoot, decodeURIComponent(pathname)); return target === indexFile || target.startsWith(srcDir) ? target : null; } catch { return null; } }
 function actor() { return settings.reviewer; } // Production: replace this adapter with authenticated identity and role claims.
 function assertPublisher() { if (actor().role !== "publisher") throw new Error("Current reviewer is not authorised to approve publication."); }
-function publicDraft(draft) { return { draftId: draft.id, mode: draft.mode, createdAt: draft.createdAt, state: draft.state, context: draft.context, media: { filename: draft.media.filename, hash: draft.media.hash }, opening: draft.opening, interpretation: draft.interpretation, directions: draft.directions, versions: draft.versions, actor: actor() }; }
+function publicDraft(draft) { return { draftId: draft.id, mode: draft.mode, createdAt: draft.createdAt, state: draft.state, context: draft.context, media: { filename: draft.media.filename, hash: draft.media.hash }, opening: draft.opening, interpretation: draft.interpretation, interpretationAttempt: draft.interpretationAttempt || 1, directions: draft.directions, versions: draft.versions, actor: actor() }; }
 function demoContext(input) {
   const observedAt = new Date().toISOString();
   return { date: observedAt.slice(0, 10), day: input.day, temperatureC: input.temperatureC, forecastC: input.forecastC, blockingEvents: input.blockingEvents, opensAt: input.opensAt, closesAt: input.closesAt, products: input.products, recentPosts: input.recentPosts || 0, provenance: { scenario: { source: "reviewer-supplied demo scenario", observedAt, fields: ["day", "temperatureC", "forecastC", "blockingEvents", "opensAt", "closesAt", "products", "recentPosts"] } } };
@@ -38,9 +38,18 @@ async function prepare(input) {
   const opening = assessOpeningDecision(context, settings.minimumTemperature);
   const interpretation = !opening.isOpen ? { recommendation: "do_not_publish", reason: "The operating gate is closed.", decisionClass: "operational_closure", observation: "Conditions do not support opening.", contextEvidence: [], organisationalRelevance: "No communication is warranted.", semanticDirection: "Do not create an artefact.", rejectedFrames: ["mandatory_output"], avoid: ["forced urgency"], principlesApplied: ["operations.opening_gate"] } : mode === "live" ? await liveInterpret(settings, context) : staticInterpret(context);
   const media = { filename: input.media?.filename || "reference-placeholder.svg", hash: mediaHash(input.media?.dataUrl), mimeType: input.media?.mimeType || "image/svg+xml" };
-  const draft = store.create({ mode, createdAt: new Date().toISOString(), context, media, opening, interpretation, versions });
+  const draft = store.create({ mode, createdAt: new Date().toISOString(), context, media, opening, interpretation, interpretationAttempt: 1, versions });
   await audit.append({ at: draft.createdAt, event: "draft_prepared", draftId: draft.id, mode, context, media: { ...media, dataUrl: undefined }, opening, interpretation, versions, actor: actor() });
   return publicDraft(draft);
+}
+async function iterateInterpretation(draft) {
+  if (draft.state !== "interpretation_pending") throw new Error("Only a pending interpretation can be iterated.");
+  // Live mode receives a fresh bounded model call. The deterministic reference engine
+  // records a fresh attempt too, so the review/audit state machine is identical.
+  const interpretation = draft.mode === "live" ? await liveInterpret(settings, { ...draft.context, iteration: (draft.interpretationAttempt || 1) + 1 }) : staticInterpret({ ...draft.context, iteration: (draft.interpretationAttempt || 1) + 1 });
+  const next = store.update(draft.id, { interpretation, interpretationAttempt: (draft.interpretationAttempt || 1) + 1 });
+  await audit.append({ at: new Date().toISOString(), event: "interpretation_iterated", draftId: draft.id, attempt: next.interpretationAttempt, interpretation, actor: actor() });
+  return publicDraft(next);
 }
 async function generateDirections(draft) {
   if (draft.state !== "interpretation_approved") throw new Error("Approve the interpretation before creative direction runs.");
@@ -65,6 +74,8 @@ createServer(async (request, response) => {
       const next = store.update(draft.id, { state: "interpretation_approved", approvedInterpretation: { by: actor(), at: new Date().toISOString(), reason } });
       await audit.append({ at: new Date().toISOString(), event: "interpretation_approved", draftId: draft.id, reason, actor: actor() }); return send(response, 200, publicDraft(next));
     }
+    const iterateInterpretationRoute = request.url?.match(/^\/api\/drafts\/([\w-]+)\/interpretation\/iterate$/);
+    if (request.method === "POST" && iterateInterpretationRoute) { const draft = store.get(iterateInterpretationRoute[1]); if (!draft) return send(response, 404, { error: "Unknown draft." }); return send(response, 200, await iterateInterpretation(draft)); }
     const directions = request.url?.match(/^\/api\/drafts\/([\w-]+)\/directions$/);
     if (request.method === "POST" && directions) { const draft = store.get(directions[1]); if (!draft) return send(response, 404, { error: "Unknown draft." }); return send(response, 200, await generateDirections(draft)); }
     const approveArtefact = request.url?.match(/^\/api\/drafts\/([\w-]+)\/artefact\/approve$/);

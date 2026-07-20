@@ -48,6 +48,13 @@ test("interpreter produces a bounded audience-moment interpretation", () => {
   assert.deepEqual(result.rejectedFrames, ["heat_relief", "urgency", "generic_seasonal_framing"]);
 });
 
+test("an iteration produces a distinct but equally bounded interpretation", () => {
+  const initial = interpret(context);
+  const next = interpret({ ...context, iteration: 2 });
+  assert.notEqual(next.semanticDirection, initial.semanticDirection);
+  assert.deepEqual(next.rejectedFrames, initial.rejectedFrames);
+});
+
 test("directions stay valid and conform to the approved interpretation", () => {
   const interpretation = interpret(context);
   const direction = createDirections(context, interpretation)[0];

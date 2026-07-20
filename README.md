@@ -13,7 +13,7 @@ The flow is intentionally staged:
 
 `Context + provenance → Philosophy interpretation → human gate → Creative Skill → validation + semantic conformance → human gate → signed approval → hash-chained audit`
 
-No creative directions are generated before a reviewer approves the interpretation. A reviewer can select silence at either decision point.
+No creative directions are generated before a reviewer approves the interpretation. At the first gate, a reviewer can select silence, approve, or request another bounded interpretation attempt; each attempt is visible and audited. A reviewer can also cancel at the artefact gate.
 
 ## Architectural guarantees
 
