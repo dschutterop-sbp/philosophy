@@ -35,6 +35,8 @@ export function verifyApprovalToken(manifest, approvalToken, signingKey) {
   const { canonicalHash: hash, approvalToken: expected } = issueApprovalToken(manifest, signingKey);
   const a = Buffer.from(expected, "hex");
   const b = Buffer.from(String(approvalToken), "hex");
-  const valid = a.length === b.length && timingSafeEqual(a, b);
-  return { valid, canonicalHash: hash };
+  const signatureValid = a.length === b.length && timingSafeEqual(a, b);
+  const expiresAt = manifest?.expiry ? Date.parse(manifest.expiry) : NaN;
+  const expired = Number.isFinite(expiresAt) && expiresAt <= Date.now();
+  return { valid: signatureValid && !expired, canonicalHash: hash, expired };
 }

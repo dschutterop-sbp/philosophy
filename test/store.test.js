@@ -11,3 +11,10 @@ test("draft store retains server-owned state and only advances through updates",
   assert.equal(store.get(draft.id).state, "interpretation_approved");
   assert.notEqual(next, draft);
 });
+
+test("draft store rejects stale compare-and-swap updates", () => {
+  const store = new DraftStore();
+  const draft = store.create({ createdAt: "2026-07-20T10:00:00Z", context: {}, interpretation: {}, media: { hash: "media" }, mode: "demo", versions: {} });
+  assert.ok(store.update(draft.id, { state: "interpretation_approved" }, draft.revision));
+  assert.equal(store.update(draft.id, { state: "cancelled" }, draft.revision), null);
+});

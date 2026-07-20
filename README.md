@@ -25,7 +25,7 @@ No creative directions are generated before a reviewer approves the interpretati
 - **Silence.** Routine events can produce `do_not_publish`, including in the deterministic demo via **Recent posts**.
 - **Auditability.** Every meaningful transition is written as a hash-chained JSONL event. For production, send the same events to an access-controlled append-only audit system.
 
-The built-in reviewer identity is a reference adapter controlled by deployment configuration. Replace it with authenticated identity and role claims before treating this as a production authorisation system.
+The built-in reviewer identity is a reference adapter controlled by deployment configuration. Replace it with authenticated identity and role claims before treating this as a production authorisation system. Drafts are intentionally held in memory, so a restart invalidates in-flight review links; production needs durable, access-controlled draft storage.
 
 ## Run
 
@@ -38,7 +38,7 @@ Open [http://localhost:8080](http://localhost:8080). Demo mode requires no crede
 
 ## Live configuration
 
-Live mode needs `WEATHER_LATITUDE`, `WEATHER_LONGITUDE`, OpenAI credentials, and Google Calendar OAuth credentials. See [.env.example](/Users/daniel/Documents/Philosophy/.env.example) for all settings.
+Live mode needs `WEATHER_LATITUDE`, `WEATHER_LONGITUDE`, OpenAI credentials, and Google Calendar OAuth credentials. `RECENT_POSTS` is the publishing-history input used by the silence decision; this reference accepts it from deployment configuration until it is connected to a publishing-history adapter. See [.env.example](/Users/daniel/Documents/Philosophy/.env.example) for all settings.
 
 `OPENAI_CONFORMANCE_MODEL` can be set to a distinct model from `OPENAI_MODEL` to mitigate correlated interpreter/executor/judge failure. It is a mitigation, not proof of independence.
 

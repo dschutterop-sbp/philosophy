@@ -7,15 +7,15 @@ export class DraftStore {
   constructor() { this.drafts = new Map(); }
   create(record) {
     const id = digest({ context: record.context, interpretation: record.interpretation, mediaHash: record.media.hash, createdAt: record.createdAt }).slice(0, 20);
-    const draft = Object.freeze({ ...record, id, state: "interpretation_pending", directions: [], approvedInterpretation: null, approval: null });
+    const draft = Object.freeze({ ...record, id, revision: 0, state: "interpretation_pending", directions: [], approvedInterpretation: null, approval: null });
     this.drafts.set(id, draft);
     return draft;
   }
   get(id) { return this.drafts.get(id); }
-  update(id, change) {
+  update(id, change, expectedRevision = undefined) {
     const current = this.get(id);
-    if (!current) return null;
-    const next = Object.freeze({ ...current, ...change });
+    if (!current || (expectedRevision !== undefined && current.revision !== expectedRevision)) return null;
+    const next = Object.freeze({ ...current, ...change, revision: current.revision + 1 });
     this.drafts.set(id, next);
     return next;
   }

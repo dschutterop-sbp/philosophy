@@ -45,3 +45,11 @@ test("verifyApprovalToken rejects a malformed token without throwing", () => {
   const result = verifyApprovalToken(manifest, "not-a-hex-token", "test-key");
   assert.equal(result.valid, false);
 });
+
+test("verifyApprovalToken rejects an otherwise valid expired approval", () => {
+  const manifest = { draftId: "abc123", expiry: "2020-01-01T00:00:00.000Z" };
+  const { approvalToken } = issueApprovalToken(manifest, "test-key");
+  const result = verifyApprovalToken(manifest, approvalToken, "test-key");
+  assert.equal(result.valid, false);
+  assert.equal(result.expired, true);
+});

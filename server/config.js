@@ -26,6 +26,7 @@ export function config() {
     usingDefaultSigningKey: !process.env.APPROVAL_SIGNING_KEY,
     openingHours: process.env.OPENING_HOURS || "13:30-18:00",
     products: (process.env.AVAILABLE_PRODUCTS || "Aperol Spritz Sorbet,Limoncello Spritz Sorbet").split(",").map((item) => item.trim()).filter(Boolean),
+    recentPosts: Number(process.env.RECENT_POSTS || 0),
     reviewer: { id: process.env.DEMO_REVIEWER_ID || "demo-publisher", role: process.env.DEMO_REVIEWER_ROLE || "publisher" },
   };
 }
