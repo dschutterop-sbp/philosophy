@@ -19,7 +19,7 @@
 
       <section id="setup" class="step" aria-labelledby="setup-title">
         <div class="step-heading"><span>01</span><h2 id="setup-title">Verified context</h2></div>
-        <div class="mode-toggle" id="mode-toggle" role="radiogroup" aria-label="Philosophy mode">
+        <div class="mode-toggle" id="mode-toggle" role="radiogroup" aria-label="Execution mode">
           <button type="button" class="mode-option selected" data-mode="demo" role="radio" aria-checked="true">Demo · static data</button>
           <button type="button" class="mode-option" data-mode="live" role="radio" aria-checked="false">Live · agentic</button>
         </div>
@@ -45,7 +45,7 @@
         <div class="step-heading"><span>02</span><h2 id="review-title">First human gate</h2></div>
         <div class="interpretation-layout">
           <article class="interpretation">
-            <p class="eyebrow">Interpretation · v1.0.0 · <span id="mode-badge"></span></p>
+            <p class="eyebrow">Philosophy · v<span id="philosophy-version"></span> · <span id="mode-badge"></span></p>
             <h3 id="observation"></h3>
             <p id="relevance"></p>
             <dl>
@@ -55,11 +55,12 @@
             </dl>
           </article>
           <article class="checks">
-            <p class="eyebrow">Execution checks · v0.1.0</p>
+            <p class="eyebrow">Skill · v<span id="skill-version"></span> · Execution checks</p>
             <div id="validation"></div>
             <div id="conformance"></div>
           </article>
         </div>
+        <p class="eyebrow">Creative directions · bounded by the Philosophy above</p>
         <div class="directions" id="directions" role="radiogroup" aria-label="Creative directions"></div>
         <div class="review-layout">
           <div class="story-frame" aria-label="Instagram Story preview">

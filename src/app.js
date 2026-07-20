@@ -1,3 +1,5 @@
+import { PHILOSOPHY_VERSION, SKILL_VERSION } from "./pipeline.js";
+
 const $ = (selector) => document.querySelector(selector);
 const defaultImage = (label) => "data:image/svg+xml," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='1080' height='1920'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='%23666a65'/><stop offset='1' stop-color='%231f2927'/></linearGradient></defs><rect fill='url(%23g)' width='100%' height='100%'/><path d='M0 1250 C260 1170 550 1310 1080 1190 V1920 H0Z' fill='%236d8786' opacity='.5'/><rect x='180' y='810' width='720' height='410' rx='10' fill='%23dbc9a4'/><rect x='130' y='700' width='820' height='130' fill='%23252e2b'/><text x='540' y='980' text-anchor='middle' fill='%23252e2b' font-size='54' font-family='sans-serif'>${label}</text><text x='540' y='1060' text-anchor='middle' fill='%23252e2b' font-size='28' font-family='sans-serif'>UPLOAD A QUAY PHOTO</text></svg>`);
 
@@ -60,6 +62,9 @@ $("#brand-toggle").addEventListener("click", (event) => {
   if (button) setBrand(button.dataset.brand);
 });
 setBrand(brand);
+
+$("#philosophy-version").textContent = PHILOSOPHY_VERSION;
+$("#skill-version").textContent = SKILL_VERSION;
 
 function readContext() {
   return {
@@ -154,4 +159,4 @@ $("#prepare").addEventListener("click", async () => {
 
 $("#iterate").addEventListener("click", () => { $("#decision-result").textContent = "Iteration requested. Return to the selected direction; the interpretation remains intact."; });
 $("#cancel").addEventListener("click", () => { $("#decision-result").textContent = "Cancelled. The decision and its rationale are recorded as no publication."; });
-$("#publish").addEventListener("click", () => { $("#decision-result").textContent = `Approved for publication: ${selectedDirection.id}. The approved Story is bound to Philosophy v1.0.0 and Skill v0.1.0.`; });
+$("#publish").addEventListener("click", () => { $("#decision-result").textContent = `Approved for publication: ${selectedDirection.id}. The approved Story is bound to Philosophy v${PHILOSOPHY_VERSION} and Skill v${SKILL_VERSION}.`; });
