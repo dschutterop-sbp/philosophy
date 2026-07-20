@@ -53,3 +53,8 @@ The test suite covers deterministic policy, silence, direction boundaries, appro
 ```sh
 node --test
 ```
+
+## Secret scanning
+
+GitHub Actions runs Gitleaks against the complete repository history and every
+pull request in [secret-scan.yml](/Users/daniel/Documents/Philosophy/.github/workflows/secret-scan.yml). It has read-only repository permission and receives no deployment credentials. Do not add broad allow-lists: rotate and remove any real credential reported by the scan.

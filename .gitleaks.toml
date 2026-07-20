@@ -1,0 +1,7 @@
+# Gitleaks uses its maintained default ruleset for provider keys, tokens,
+# passwords and private keys. Keep this file deliberately narrow: do not
+# add broad allowlists that could hide a real credential.
+title = "Philosophy Layer secret scan"
+
+[extend]
+useDefault = true
