@@ -1,4 +1,15 @@
-const philosophy = `You are the Philosophy Interpreter for Il Tiratore, an artisan ice-cream cart. Its audience is cyclists, walkers and people in small boats who are already in a good moment outdoors, passing a canal in a small village. The cart adds a small pleasure; it does not summon, rescue or pressure people. Character: laboratory precision, high-grade ingredients, calm, space and trust. Never use loud Italian clichés, childishness, vintage-retro styling, stock-photo cheerfulness, heat-relief framing, discount messaging or forced urgency. The internal meaning of the name is precision; do not explain it. Facts are authoritative and must never be invented.`;
+import { readFile } from "node:fs/promises";
+
+// The Philosophy and each Skill are kept as separate prompt files under ./prompts
+// so they can be reviewed and edited independently of the request/response plumbing.
+const promptsDir = new URL("./prompts/", import.meta.url);
+const readPrompt = async (file) => (await readFile(new URL(file, promptsDir), "utf8")).trim();
+const [philosophy, skillInterpret, skillDirections, skillConformance] = await Promise.all([
+  readPrompt("philosophy.md"),
+  readPrompt("skill-interpret.md"),
+  readPrompt("skill-directions.md"),
+  readPrompt("skill-conformance.md"),
+]);
 
 const interpretationSchema = { type: "object", additionalProperties: false, required: ["recommendation", "observation", "organisationalRelevance", "semanticDirection", "rejectedFrames", "avoid", "principlesApplied"], properties: {
   recommendation: { type: "string", enum: ["develop_direction", "do_not_publish"] }, observation: { type: "string" }, organisationalRelevance: { type: "string" }, semanticDirection: { type: "string" }, rejectedFrames: { type: "array", items: { type: "string" } }, avoid: { type: "array", items: { type: "string" } }, principlesApplied: { type: "array", items: { type: "string" } },
@@ -24,11 +35,11 @@ async function structured(settings, name, schema, instructions, payload) {
 }
 
 export async function interpret(settings, context) {
-  return structured(settings, "il_tiratore_interpretation", interpretationSchema, "Determine what this verified opening context means. Return do_not_publish when no distinctive audience-facing reason exists. Do not write a caption or invent a fact.", context);
+  return structured(settings, "il_tiratore_interpretation", interpretationSchema, skillInterpret, context);
 }
 export async function directions(settings, context, interpretation) {
-  return structured(settings, "il_tiratore_directions", directionsSchema, "Create 1-3 Story directions within the approved interpretation. Captions must include only verified facts when they state facts. Keep copy concise. Do not introduce weather clichés, urgency or facts absent from the context.", { context, interpretation });
+  return structured(settings, "il_tiratore_directions", directionsSchema, skillDirections, { context, interpretation });
 }
 export async function conformance(settings, direction, interpretation) {
-  return structured(settings, "il_tiratore_conformance", conformanceSchema, "Act as a negative-first semantic conformance checker. Identify only concrete violations of the approved interpretation, especially generic seasonal framing, heat relief, urgency, discounts, invented claims and prohibited styling. Positive fit is advisory.", { direction, interpretation });
+  return structured(settings, "il_tiratore_conformance", conformanceSchema, skillConformance, { direction, interpretation });
 }

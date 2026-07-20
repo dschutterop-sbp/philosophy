@@ -27,6 +27,15 @@ A toggle at the top of the page switches how the Philosophy layer runs:
 
 Both modes share the same deterministic gate (`assessOpeningDecision`) and artefact validation (`validateArtefact`), so the two paths are directly comparable — demo mode is a faithful stand-in for what live mode does, not a separate toy.
 
+### Prompt files
+
+Live mode's prompts live as plain markdown under `server/prompts/`, one file per concept, so each can be reviewed or edited without touching request/response code:
+
+- `philosophy.md` — the persistent brand voice, audience and forbidden framing (`PHILOSOPHY_VERSION` in `src/pipeline.js`).
+- `skill-interpret.md`, `skill-directions.md`, `skill-conformance.md` — task-specific instructions for the three structured OpenAI calls (`SKILL_VERSION`).
+
+`server/openai.js` loads all four once at startup and prepends `philosophy.md` to whichever skill instructions a given call needs.
+
 ## Settings for live agentic mode
 
 Put these values in the local `.env` file only. `.env` is ignored by Git; commit neither API keys nor OAuth tokens.
