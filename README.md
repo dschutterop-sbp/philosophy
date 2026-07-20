@@ -56,6 +56,22 @@ docker compose up --build
 
 Open [http://localhost:8080](http://localhost:8080). Demo mode requires no credentials. Live mode reads weather and calendar data and takes opening hours/products only from deployment configuration, never from the browser. Live mode refuses to start without a non-demo `APPROVAL_SIGNING_KEY`.
 
+## Ubuntu deployment
+
+On an Ubuntu host with Git, Docker Engine and the Docker Compose plugin, run
+[scripts/serve-ubuntu.sh](scripts/serve-ubuntu.sh). It clones the repository
+to `$HOME/philosophy` (or `$PHILOSOPHY_INSTALL_DIR`), fast-forwards the
+selected branch, creates a demo-safe `.env` if one is absent, then builds and
+starts the Compose service.
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/dschutterop-sbp/philosophy/main/scripts/serve-ubuntu.sh | bash
+```
+
+Set `PHILOSOPHY_BRANCH`, `PHILOSOPHY_INSTALL_DIR`, or `STORY_PORT` before
+running it to override the branch, checkout location, or exposed port. The
+script never overwrites an existing `.env`.
+
 ## Live configuration
 
 Live mode needs `WEATHER_LATITUDE`, `WEATHER_LONGITUDE`, OpenAI credentials, and Google Calendar OAuth credentials. `RECENT_POSTS` is the publishing-history input used by the silence decision; this reference accepts it from deployment configuration until it is connected to a publishing-history adapter. See [.env.example](/Users/daniel/Documents/Philosophy/.env.example) for all settings.
