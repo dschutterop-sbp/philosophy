@@ -78,6 +78,16 @@
               <button id="publish" class="primary" type="button">Publish</button>
             </div>
             <p id="decision-result" class="decision-result"></p>
+            <div id="approval-record" class="approval-record hidden">
+              <p class="eyebrow">approval_token = sign(canonical_hash(approval_manifest))</p>
+              <dl>
+                <dt>canonical_hash</dt><dd id="approval-hash"></dd>
+                <dt>approval_token</dt><dd id="approval-token"></dd>
+                <dt>signing key</dt><dd id="approval-key-note"></dd>
+              </dl>
+              <button id="verify-token" type="button">Verify token</button>
+              <p id="verify-result" class="verify-result"></p>
+            </div>
           </aside>
         </div>
       </section>

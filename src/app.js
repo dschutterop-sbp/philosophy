@@ -5,6 +5,9 @@ let uploadedPhotoUrl = null;
 let selectedDirection = null;
 let activeContext = null;
 let activeInterpretation = null;
+let activeDraftId = null;
+let activeMode = null;
+let activeApproval = null;
 // Placeholder only: the review card (and these badges) stays hidden until the first
 // successful /api/prepare response overwrites this with the real versions used.
 let activeVersions = { philosophy: "—", skill: "—" };
@@ -95,6 +98,8 @@ function renderChecks(context, direction, interpretation) {
 
 function selectDirection(direction) {
   selectedDirection = direction;
+  activeApproval = null;
+  $("#approval-record").classList.add("hidden");
   document.querySelectorAll(".direction").forEach((element) => {
     const isSelected = element.dataset.id === direction.id;
     element.classList.toggle("selected", isSelected);
@@ -141,6 +146,10 @@ $("#prepare").addEventListener("click", async () => {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Preparation failed.");
     activeContext = result.context;
+    activeDraftId = result.draftId;
+    activeMode = result.mode;
+    activeApproval = null;
+    $("#approval-record").classList.add("hidden");
     $("#temperature").value = activeContext.temperatureC;
     $("#forecast").value = activeContext.forecastC;
     $("#events").value = activeContext.blockingEvents;
@@ -165,6 +174,52 @@ $("#prepare").addEventListener("click", async () => {
   } finally { button.disabled = false; button.textContent = "Prepare review"; }
 });
 
-$("#iterate").addEventListener("click", () => { $("#decision-result").textContent = "Iteration requested. Return to the selected direction; the interpretation remains intact."; });
-$("#cancel").addEventListener("click", () => { $("#decision-result").textContent = "Cancelled. The decision and its rationale are recorded as no publication."; });
-$("#publish").addEventListener("click", () => { $("#decision-result").textContent = `Approved for publication: ${selectedDirection.id}. The approved Story is bound to Philosophy v${activeVersions.philosophy} and Skill v${activeVersions.skill}.`; });
+function hideApprovalRecord() {
+  activeApproval = null;
+  $("#approval-record").classList.add("hidden");
+  $("#verify-result").textContent = "";
+}
+
+$("#iterate").addEventListener("click", () => { $("#decision-result").textContent = "Iteration requested. Return to the selected direction; the interpretation remains intact."; hideApprovalRecord(); });
+$("#cancel").addEventListener("click", () => { $("#decision-result").textContent = "Cancelled. The decision and its rationale are recorded as no publication."; hideApprovalRecord(); });
+
+$("#publish").addEventListener("click", async () => {
+  const button = $("#publish");
+  button.disabled = true; button.textContent = "Signing approval…";
+  try {
+    const response = await fetch("/api/publish", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ draftId: activeDraftId, mode: activeMode, context: activeContext, interpretation: activeInterpretation, direction: selectedDirection, versions: activeVersions }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Publish failed.");
+    activeApproval = result;
+    $("#decision-result").textContent = `Approved for publication: ${selectedDirection.id}. The approved Story is bound to Philosophy v${activeVersions.philosophy} and Skill v${activeVersions.skill}.`;
+    $("#approval-hash").textContent = result.canonicalHash;
+    $("#approval-token").textContent = result.approvalToken;
+    $("#approval-key-note").textContent = result.usingDefaultSigningKey ? "demo key (set APPROVAL_SIGNING_KEY in .env for a real one)" : "configured signing key";
+    $("#verify-result").textContent = "";
+    $("#approval-record").classList.remove("hidden");
+  } catch (error) { $("#decision-result").textContent = `Could not record the approval: ${error.message}`; hideApprovalRecord();
+  } finally { button.disabled = false; button.textContent = "Publish"; }
+});
+
+$("#verify-token").addEventListener("click", async () => {
+  if (!activeApproval) return;
+  const button = $("#verify-token");
+  button.disabled = true; button.textContent = "Verifying…";
+  try {
+    const response = await fetch("/api/verify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ approvalManifest: activeApproval.approvalManifest, approvalToken: activeApproval.approvalToken }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Verification failed.");
+    const verifyResult = $("#verify-result");
+    verifyResult.textContent = result.valid ? "Verified: token matches sign(canonical_hash(approval_manifest))." : "Not verified: recomputed signature does not match.";
+    verifyResult.className = `verify-result ${result.valid ? "pass" : "fail"}`;
+  } catch (error) { $("#verify-result").textContent = `Could not verify: ${error.message}`; $("#verify-result").className = "verify-result fail";
+  } finally { button.disabled = false; button.textContent = "Verify token"; }
+});

@@ -7,6 +7,7 @@ import { config } from "./config.js";
 import { liveContext } from "./live-context.js";
 import { conformance as liveConformance, directions as liveDirections, interpret as liveInterpret, philosophyVersion, skillVersion } from "./openai.js";
 import { assessOpeningDecision, conformanceCheck, createDirections, interpret as staticInterpret, validateArtefact } from "../src/pipeline.js";
+import { issueApprovalToken, verifyApprovalToken } from "./approval.js";
 
 const settings = config();
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -64,8 +65,24 @@ createServer(async (request, response) => {
       if (mode === "live" && !settings.liveReady) return send(response, 400, { error: `Live mode needs configuration: ${settings.missingLive.join(", ")}. Use demo mode or complete .env.` });
       const result = mode === "live" ? await prepareLive(supplied) : await prepareDemo(supplied);
       const draftId = createHash("sha256").update(JSON.stringify(result)).digest("hex").slice(0, 16);
-      await audit({ at: new Date().toISOString(), draftId, mode, ...result });
+      await audit({ at: new Date().toISOString(), event: "prepare", draftId, mode, ...result });
       return send(response, 200, { draftId, mode, ...result });
+    }
+    // approval_token = sign(canonical_hash(approval_manifest)). The manifest is built
+    // from exactly what the reviewer saw and acted on; the signature makes that record
+    // tamper-evident, not the review decision itself trustworthy - that's the human gate.
+    if (request.method === "POST" && request.url === "/api/publish") {
+      const { draftId, mode, context, interpretation, direction, versions: draftVersions } = await body(request);
+      if (!draftId || !direction) return send(response, 400, { error: "draftId and direction are required to publish." });
+      const approvalManifest = { draftId, mode, decision: "publish", approvedAt: new Date().toISOString(), context, interpretation, direction, versions: draftVersions };
+      const { canonicalHash, approvalToken } = issueApprovalToken(approvalManifest, settings.approvalSigningKey);
+      await audit({ at: approvalManifest.approvedAt, event: "approval", draftId, approvalManifest, canonicalHash, approvalToken, usingDefaultSigningKey: settings.usingDefaultSigningKey });
+      return send(response, 200, { approvalManifest, canonicalHash, approvalToken, usingDefaultSigningKey: settings.usingDefaultSigningKey });
+    }
+    if (request.method === "POST" && request.url === "/api/verify") {
+      const { approvalManifest, approvalToken } = await body(request);
+      if (!approvalManifest || !approvalToken) return send(response, 400, { error: "approvalManifest and approvalToken are required to verify." });
+      return send(response, 200, verifyApprovalToken(approvalManifest, approvalToken, settings.approvalSigningKey));
     }
     if (request.method === "GET") {
       const pathname = request.url === "/" ? "index.html" : request.url.slice(1).split("?")[0];

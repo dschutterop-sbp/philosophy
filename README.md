@@ -71,6 +71,18 @@ Live mode is assisted, not autonomous publication. The server owns verified fact
 
 Each prepared run appends its context, interpretation, directions and checks to `story_audit`, the named Docker volume. Treat that volume as operational data: retain it deliberately and restrict host access.
 
+### Approval tokens
+
+Clicking **Publish** doesn't just show a confirmation message - it calls `POST /api/publish`, which builds an `approval_manifest` (the draft ID, mode, context, interpretation, the selected direction and its checks, and the Philosophy/Skill versions) and computes:
+
+```
+approval_token = sign(canonical_hash(approval_manifest))
+```
+
+`server/approval.js` implements both halves for real: `canonicalHash` serialises the manifest with sorted keys (so two semantically identical manifests always hash the same way) and SHA-256s it; `sign` is an HMAC-SHA256 over that hash using `APPROVAL_SIGNING_KEY` (or an openly-labelled demo key if that's unset - the response and UI both say which one was used). The mechanism runs identically in demo and live mode; only the manifest's content differs, since demo's context/interpretation are the mocked static-form data described above.
+
+The review screen shows the resulting `canonical_hash` and `approval_token` in full, plus a **Verify token** button that calls `POST /api/verify` to recompute the signature server-side and confirm it matches - so the round trip is something you can watch happen, not something to take on faith. Both the manifest and the token are appended to the audit log (`event: "approval"`) alongside the original `event: "prepare"` record for the same `draftId`.
+
 ### Pre-flight checklist
 
 Before using live mode, confirm:

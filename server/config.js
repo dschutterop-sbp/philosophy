@@ -1,5 +1,8 @@
 // Only demo mode (static data, no external calls) can run without these; live mode needs all of them.
 const liveRequired = ["OPENAI_API_KEY", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN"];
+// Approval signing works out of the box in every mode, using an openly-labelled demo
+// key unless a real one is configured. Never treat the fallback as a secret.
+const demoSigningKey = "demo-signing-key-not-for-production-use";
 
 export function config() {
   const latitude = Number(process.env.WEATHER_LATITUDE);
@@ -18,5 +21,7 @@ export function config() {
     googleRefreshToken: process.env.GOOGLE_REFRESH_TOKEN,
     liveReady: missingLive.length === 0,
     missingLive,
+    approvalSigningKey: process.env.APPROVAL_SIGNING_KEY || demoSigningKey,
+    usingDefaultSigningKey: !process.env.APPROVAL_SIGNING_KEY,
   };
 }
