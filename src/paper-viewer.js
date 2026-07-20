@@ -32,12 +32,24 @@ export function renderMarkdown(markdown) {
   const flushParagraph = () => { if (paragraph.length) { html.push(`<p>${inline(paragraph.join(" "))}</p>`); paragraph = []; } };
   const flushList = () => { if (list) { html.push(`<${list.type}>${list.items.map((item) => `<li>${inline(item)}</li>`).join("")}</${list.type}>`); list = null; } };
   const flushCode = () => { if (code) { html.push(`<pre><code>${inline(code.lines.join("\n"))}</code></pre>`); code = null; } };
-  for (const line of lines) {
+  const cells = (line) => line.trim().replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim());
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (/^<a id="[^"]+"><\/a>$/.test(line.trim())) continue;
     if (line.startsWith("```")) { if (code) flushCode(); else { flushParagraph(); flushList(); code = { lines: [] }; } continue; }
     if (code) { code.lines.push(line); continue; }
     const heading = line.match(/^(#{1,6})\s+(.+)$/);
     const item = line.match(/^([*+-]|\d+\.)\s+(.+)$/);
-    if (heading) { flushParagraph(); flushList(); html.push(`<h${heading[1].length}>${inline(heading[2])}</h${heading[1].length}>`); }
+    const separator = lines[index + 1]?.trim().match(/^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/);
+    if (line.trim().startsWith("|") && separator) {
+      flushParagraph(); flushList();
+      const header = cells(line);
+      const rows = [];
+      index += 2;
+      while (lines[index]?.trim().startsWith("|")) { rows.push(cells(lines[index])); index += 1; }
+      index -= 1;
+      html.push(`<table><thead><tr>${header.map((cell) => `<th>${inline(cell)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${inline(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+    } else if (heading) { flushParagraph(); flushList(); html.push(`<h${heading[1].length}>${inline(heading[2])}</h${heading[1].length}>`); }
     else if (item) { flushParagraph(); const type = /\d+\./.test(item[1]) ? "ol" : "ul"; if (!list || list.type !== type) { flushList(); list = { type, items: [] }; } list.items.push(item[2]); }
     else if (/^---+$/.test(line)) { flushParagraph(); flushList(); html.push("<hr>"); }
     else if (line.startsWith("> ")) { flushParagraph(); flushList(); html.push(`<blockquote>${inline(line.slice(2))}</blockquote>`); }
