@@ -5,7 +5,14 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
   if (value && typeof value === "object") {
-    return Object.keys(value).sort().reduce((sorted, key) => { sorted[key] = canonicalize(value[key]); return sorted; }, {});
+    // Explicit code-unit comparator (matches the default sort) so the canonical key
+    // order — and therefore the approval-token hash — stays stable and deterministic.
+    const byCodeUnit = (a, b) => {
+      if (a < b) return -1;
+      if (a > b) return 1;
+      return 0;
+    };
+    return Object.keys(value).sort(byCodeUnit).reduce((sorted, key) => { sorted[key] = canonicalize(value[key]); return sorted; }, {});
   }
   return value;
 }

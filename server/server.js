@@ -36,7 +36,14 @@ async function prepare(input) {
   if (mode === "live" && !settings.liveReady) throw new Error(`Live mode needs configuration: ${settings.missingLive.join(", ")}.`);
   const context = mode === "live" ? await liveContext(settings) : demoContext(input);
   const opening = assessOpeningDecision(context, settings.minimumTemperature);
-  const interpretation = !opening.isOpen ? { recommendation: "do_not_publish", reason: "The operating gate is closed.", decisionClass: "operational_closure", observation: "Conditions do not support opening.", contextEvidence: [], organisationalRelevance: "No communication is warranted.", semanticDirection: "Do not create an artefact.", rejectedFrames: ["mandatory_output"], avoid: ["forced urgency"], principlesApplied: ["operations.opening_gate"] } : mode === "live" ? await liveInterpret(settings, context) : staticInterpret(context);
+  let interpretation;
+  if (!opening.isOpen) {
+    interpretation = { recommendation: "do_not_publish", reason: "The operating gate is closed.", decisionClass: "operational_closure", observation: "Conditions do not support opening.", contextEvidence: [], organisationalRelevance: "No communication is warranted.", semanticDirection: "Do not create an artefact.", rejectedFrames: ["mandatory_output"], avoid: ["forced urgency"], principlesApplied: ["operations.opening_gate"] };
+  } else if (mode === "live") {
+    interpretation = await liveInterpret(settings, context);
+  } else {
+    interpretation = staticInterpret(context);
+  }
   const media = { filename: input.media?.filename || "reference-placeholder.svg", hash: mediaHash(input.media?.dataUrl), mimeType: input.media?.mimeType || "image/svg+xml" };
   const draft = store.create({ mode, createdAt: new Date().toISOString(), context, media, opening, interpretation, interpretationAttempt: 1, versions });
   await audit.append({ at: draft.createdAt, event: "draft_prepared", draftId: draft.id, mode, context, media: { ...media, dataUrl: undefined }, opening, interpretation, versions, actor: actor() });
@@ -60,41 +67,108 @@ async function generateDirections(draft) {
   return publicDraft(next);
 }
 
+async function handlePrepare(request, response) {
+  return send(response, 200, await prepare(await body(request)));
+}
+
+async function handleApproveInterpretation(request, response, id) {
+  assertPublisher();
+  const draft = store.get(id);
+  if (!draft) return send(response, 404, { error: "Unknown draft." });
+  if (draft.state !== "interpretation_pending") return send(response, 409, { error: "Interpretation is no longer awaiting approval." });
+  const { decision = "approve", reason = "" } = await body(request);
+  if (draft.interpretation.recommendation === "do_not_publish" && decision !== "do_not_publish") return send(response, 400, { error: "This interpretation recommends silence and cannot authorise creative direction." });
+  if (decision === "do_not_publish") {
+    const cancelled = store.update(draft.id, { state: "cancelled" });
+    await audit.append({ at: new Date().toISOString(), event: "interpretation_rejected", draftId: draft.id, reason, actor: actor() });
+    return send(response, 200, publicDraft(cancelled));
+  }
+  const next = store.update(draft.id, { state: "interpretation_approved", approvedInterpretation: { by: actor(), at: new Date().toISOString(), reason } });
+  await audit.append({ at: new Date().toISOString(), event: "interpretation_approved", draftId: draft.id, reason, actor: actor() });
+  return send(response, 200, publicDraft(next));
+}
+
+async function handleIterateInterpretation(request, response, id) {
+  const draft = store.get(id);
+  if (!draft) return send(response, 404, { error: "Unknown draft." });
+  return send(response, 200, await iterateInterpretation(draft));
+}
+
+async function handleDirections(request, response, id) {
+  const draft = store.get(id);
+  if (!draft) return send(response, 404, { error: "Unknown draft." });
+  return send(response, 200, await generateDirections(draft));
+}
+
+async function handleApproveArtefact(request, response, id) {
+  assertPublisher();
+  const draft = store.get(id);
+  if (!draft) return send(response, 404, { error: "Unknown draft." });
+  if (draft.state !== "artefact_pending") return send(response, 409, { error: "Artefact is not awaiting approval." });
+  const { directionId } = await body(request);
+  const direction = draft.directions.find((item) => item.id === directionId);
+  if (!direction) return send(response, 400, { error: "Selected direction is not part of this draft." });
+  if (!direction.validation.valid || !direction.semanticConformance.conforms) return send(response, 400, { error: "Selected direction did not pass required checks." });
+  const approvedAt = new Date().toISOString();
+  const expiry = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const approvalManifest = { draftId: draft.id, decision: "approve_for_publication", interpretationHash: mediaHash(JSON.stringify(draft.interpretation)), mediaHash: draft.media.hash, textHash: mediaHash(direction.caption), directionId: direction.id, accountId: "instagram-story-reference", scheduledTime: null, approver: actor(), approvedAt, expiry, versions: draft.versions };
+  const signed = issueApprovalToken(approvalManifest, settings.approvalSigningKey);
+  const next = store.update(draft.id, { state: "approved_for_publication", approval: { approvalManifest, ...signed } });
+  await audit.append({ at: approvedAt, event: "artefact_approved", draftId: draft.id, directionId, approvalManifest, canonicalHash: signed.canonicalHash, actor: actor() });
+  return send(response, 200, { ...publicDraft(next), approvalManifest, ...signed, usingDefaultSigningKey: settings.usingDefaultSigningKey });
+}
+
+async function handleCancel(request, response, id) {
+  const draft = store.get(id);
+  if (!draft) return send(response, 404, { error: "Unknown draft." });
+  const { reason = "" } = await body(request);
+  const next = store.update(draft.id, { state: "cancelled" });
+  await audit.append({ at: new Date().toISOString(), event: "draft_cancelled", draftId: draft.id, reason, actor: actor() });
+  return send(response, 200, publicDraft(next));
+}
+
+async function handleVerify(request, response) {
+  const { approvalManifest, approvalToken } = await body(request);
+  if (!approvalManifest || !approvalToken) return send(response, 400, { error: "approvalManifest and approvalToken are required." });
+  return send(response, 200, verifyApprovalToken(approvalManifest, approvalToken, settings.approvalSigningKey));
+}
+
+async function handleStatic(request, response) {
+  const pathname = request.url === "/" ? "index.html" : request.url.slice(1).split("?")[0];
+  const target = publicFile(pathname);
+  if (!target) return send(response, 404, { error: "Not found" });
+  try {
+    const file = await readFile(target);
+    response.writeHead(200, { "content-type": mime(pathname), "cache-control": "no-store" });
+    response.end(file);
+  } catch (error) {
+    if (error.code === "ENOENT") return send(response, 404, { error: "Not found" });
+    throw error;
+  }
+}
+
+// Method + URL-matcher → handler. A matcher returns the regex match (capture group 1 is
+// the draft id) or a truthy sentinel for static URLs, else null.
+const routes = [
+  { method: "POST", match: (url) => (url === "/api/prepare" ? [] : null), handle: handlePrepare },
+  { method: "POST", match: (url) => url.match(/^\/api\/drafts\/([\w-]+)\/interpretation\/approve$/), handle: handleApproveInterpretation },
+  { method: "POST", match: (url) => url.match(/^\/api\/drafts\/([\w-]+)\/interpretation\/iterate$/), handle: handleIterateInterpretation },
+  { method: "POST", match: (url) => url.match(/^\/api\/drafts\/([\w-]+)\/directions$/), handle: handleDirections },
+  { method: "POST", match: (url) => url.match(/^\/api\/drafts\/([\w-]+)\/artefact\/approve$/), handle: handleApproveArtefact },
+  { method: "POST", match: (url) => url.match(/^\/api\/drafts\/([\w-]+)\/cancel$/), handle: handleCancel },
+  { method: "POST", match: (url) => (url === "/api/verify" ? [] : null), handle: handleVerify },
+];
+
 createServer(async (request, response) => {
   try {
-    if (request.url === "/api/health") return send(response, 200, { ok: true });
-    if (request.method === "POST" && request.url === "/api/prepare") return send(response, 200, await prepare(await body(request)));
-    const approveInterpretation = request.url?.match(/^\/api\/drafts\/([\w-]+)\/interpretation\/approve$/);
-    if (request.method === "POST" && approveInterpretation) {
-      assertPublisher(); const draft = store.get(approveInterpretation[1]); if (!draft) return send(response, 404, { error: "Unknown draft." });
-      if (draft.state !== "interpretation_pending") return send(response, 409, { error: "Interpretation is no longer awaiting approval." });
-      const { decision = "approve", reason = "" } = await body(request);
-      if (draft.interpretation.recommendation === "do_not_publish" && decision !== "do_not_publish") return send(response, 400, { error: "This interpretation recommends silence and cannot authorise creative direction." });
-      if (decision === "do_not_publish") { const next = store.update(draft.id, { state: "cancelled" }); await audit.append({ at: new Date().toISOString(), event: "interpretation_rejected", draftId: draft.id, reason, actor: actor() }); return send(response, 200, publicDraft(next)); }
-      const next = store.update(draft.id, { state: "interpretation_approved", approvedInterpretation: { by: actor(), at: new Date().toISOString(), reason } });
-      await audit.append({ at: new Date().toISOString(), event: "interpretation_approved", draftId: draft.id, reason, actor: actor() }); return send(response, 200, publicDraft(next));
+    const url = request.url || "";
+    if (url === "/api/health") return send(response, 200, { ok: true });
+    for (const route of routes) {
+      if (request.method !== route.method) continue;
+      const match = route.match(url);
+      if (match) return await route.handle(request, response, match[1]);
     }
-    const iterateInterpretationRoute = request.url?.match(/^\/api\/drafts\/([\w-]+)\/interpretation\/iterate$/);
-    if (request.method === "POST" && iterateInterpretationRoute) { const draft = store.get(iterateInterpretationRoute[1]); if (!draft) return send(response, 404, { error: "Unknown draft." }); return send(response, 200, await iterateInterpretation(draft)); }
-    const directions = request.url?.match(/^\/api\/drafts\/([\w-]+)\/directions$/);
-    if (request.method === "POST" && directions) { const draft = store.get(directions[1]); if (!draft) return send(response, 404, { error: "Unknown draft." }); return send(response, 200, await generateDirections(draft)); }
-    const approveArtefact = request.url?.match(/^\/api\/drafts\/([\w-]+)\/artefact\/approve$/);
-    if (request.method === "POST" && approveArtefact) {
-      assertPublisher(); const draft = store.get(approveArtefact[1]); if (!draft) return send(response, 404, { error: "Unknown draft." });
-      if (draft.state !== "artefact_pending") return send(response, 409, { error: "Artefact is not awaiting approval." });
-      const { directionId } = await body(request); const direction = draft.directions.find((item) => item.id === directionId);
-      if (!direction) return send(response, 400, { error: "Selected direction is not part of this draft." });
-      if (!direction.validation.valid || !direction.semanticConformance.conforms) return send(response, 400, { error: "Selected direction did not pass required checks." });
-      const approvedAt = new Date().toISOString(); const expiry = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-      const approvalManifest = { draftId: draft.id, decision: "approve_for_publication", interpretationHash: mediaHash(JSON.stringify(draft.interpretation)), mediaHash: draft.media.hash, textHash: mediaHash(direction.caption), directionId: direction.id, accountId: "instagram-story-reference", scheduledTime: null, approver: actor(), approvedAt, expiry, versions: draft.versions };
-      const signed = issueApprovalToken(approvalManifest, settings.approvalSigningKey); const next = store.update(draft.id, { state: "approved_for_publication", approval: { approvalManifest, ...signed } });
-      await audit.append({ at: approvedAt, event: "artefact_approved", draftId: draft.id, directionId, approvalManifest, canonicalHash: signed.canonicalHash, actor: actor() });
-      return send(response, 200, { ...publicDraft(next), approvalManifest, ...signed, usingDefaultSigningKey: settings.usingDefaultSigningKey });
-    }
-    const cancel = request.url?.match(/^\/api\/drafts\/([\w-]+)\/cancel$/);
-    if (request.method === "POST" && cancel) { const draft = store.get(cancel[1]); if (!draft) return send(response, 404, { error: "Unknown draft." }); const { reason = "" } = await body(request); const next = store.update(draft.id, { state: "cancelled" }); await audit.append({ at: new Date().toISOString(), event: "draft_cancelled", draftId: draft.id, reason, actor: actor() }); return send(response, 200, publicDraft(next)); }
-    if (request.method === "POST" && request.url === "/api/verify") { const { approvalManifest, approvalToken } = await body(request); if (!approvalManifest || !approvalToken) return send(response, 400, { error: "approvalManifest and approvalToken are required." }); return send(response, 200, verifyApprovalToken(approvalManifest, approvalToken, settings.approvalSigningKey)); }
-    if (request.method === "GET") { const pathname = request.url === "/" ? "index.html" : request.url.slice(1).split("?")[0]; const target = publicFile(pathname); if (!target) return send(response, 404, { error: "Not found" }); try { const file = await readFile(target); response.writeHead(200, { "content-type": mime(pathname), "cache-control": "no-store" }); response.end(file); return; } catch (error) { if (error.code === "ENOENT") return send(response, 404, { error: "Not found" }); throw error; } }
+    if (request.method === "GET") return await handleStatic(request, response);
     send(response, 404, { error: "Not found" });
   } catch (error) { send(response, 400, { error: error.message }); }
 }).listen(process.env.PORT || 8080, () => console.log(`Story service listening on ${process.env.PORT || 8080}`));

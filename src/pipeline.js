@@ -62,7 +62,7 @@ function checksFor(interpretation, text) {
   ];
   return [...new Set([...interpretation.rejectedFrames, ...interpretation.avoid])].map((boundary) => {
     const match = candidates.find(([name]) => name === boundary || boundary.includes(name));
-    return { boundary, passed: !match || !match[1].test(text) };
+    return { boundary, passed: !match?.[1].test(text) };
   });
 }
 
