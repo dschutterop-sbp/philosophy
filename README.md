@@ -14,6 +14,23 @@ and the paper’s decision-trace claims can evolve together.
 The running reference implementation links each review stage and decision-trace
 event to its relevant paper section.
 
+### Build the paper PDF
+
+The styled, reproducible PDF build lives in
+[`philosophy-layer-publication-Daniel-Schutterop`](philosophy-layer-publication-Daniel-Schutterop).
+It always uses the canonical paper source above; it does not require a copied
+Markdown file. After installing Pandoc and Typst (`brew install pandoc typst`
+on macOS), build it with:
+
+```sh
+make -C philosophy-layer-publication-Daniel-Schutterop pdf
+```
+
+The generated file is
+`philosophy-layer-publication-Daniel-Schutterop/build/philosophy_layer.pdf`.
+See the [publication build README](philosophy-layer-publication-Daniel-Schutterop/README.md)
+for font, engine, output-path, and alternate-source options.
+
 ## License and citation
 
 The reference implementation is licensed under [Apache License 2.0](LICENSE).

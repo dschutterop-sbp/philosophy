@@ -1,0 +1,20 @@
+---
+title: "The Philosophy Layer"
+subtitle: "From Guardrails to Judgement in AI-Assisted Systems"
+author: "Daniel Schutterop"
+date: "July 2026"
+lang: en-GB
+keywords:
+  - artificial intelligence
+  - AI architecture
+  - organisational judgement
+  - semantic conformance
+  - human approval
+  - governance
+description: >-
+  An architectural position paper proposing a versioned Philosophy layer
+  between verified context and deterministic execution in AI-assisted systems.
+papersize: a4
+fontsize: 11pt
+toc-title: Contents
+---

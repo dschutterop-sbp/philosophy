@@ -1,0 +1,164 @@
+$definitions.typst()$
+
+#let conf(
+  title: none,
+  subtitle: none,
+  authors: (),
+  keywords: (),
+  date: none,
+  cols: 1,
+  margin: (x: 25mm, y: 24mm),
+  paper: "a4",
+  lang: "en",
+  region: "GB",
+  font: ("New Computer Modern",),
+  fontsize: 11pt,
+  sectionnumbering: none,
+  doc,
+) = {
+  set document(
+    title: title,
+    author: authors.map(author => author.name),
+    keywords: keywords,
+  )
+  set page(
+    paper: paper,
+    margin: margin,
+    numbering: "1",
+    number-align: center,
+  )
+  set text(
+    lang: lang,
+    region: region,
+    font: font,
+    size: fontsize,
+    fill: rgb("202124"),
+  )
+  set par(justify: true, leading: 0.72em)
+  set heading(numbering: sectionnumbering)
+  set list(indent: 1.2em, body-indent: 0.55em)
+  set enum(indent: 1.2em, body-indent: 0.55em)
+
+  show heading.where(level: 1): it => block(above: 1.7em, below: 0.7em)[
+    #text(size: 17pt, weight: "bold", fill: rgb("172033"))[#it.body]
+  ]
+  show heading.where(level: 2): it => block(above: 1.35em, below: 0.55em)[
+    #text(size: 13pt, weight: "semibold", fill: rgb("172033"))[#it.body]
+  ]
+  show heading.where(level: 3): it => block(above: 1.1em, below: 0.45em)[
+    #text(size: 11pt, weight: "semibold")[#it.body]
+  ]
+  show raw.where(block: true): it => block(
+    fill: rgb("f4f5f7"),
+    stroke: (left: 1.5pt + rgb("9aa1ad")),
+    inset: (x: 10pt, y: 8pt),
+    radius: 2pt,
+    breakable: true,
+  )[#it]
+  show quote: it => block(
+    inset: (left: 14pt, right: 4pt, y: 4pt),
+    stroke: (left: 2pt + rgb("687082")),
+  )[#it.body]
+  show link: underline
+
+  if title != none {
+    block(below: 2.6em)[
+      #v(7mm)
+      #text(size: 30pt, weight: "bold", fill: rgb("172033"))[#title]
+      #if subtitle != none [
+        #v(0.65em)
+        #text(size: 16pt, fill: rgb("596273"))[#subtitle]
+      ]
+      #v(1.5em)
+      #line(length: 44mm, stroke: 2pt + rgb("687082"))
+      #v(1.25em)
+      #if authors != none and authors != [] [
+        #text(size: 11.5pt, weight: "semibold")[#authors.map(a => a.name).join(", ")]
+      ]
+      #if date != none [
+        #v(0.35em)
+        #text(size: 10.5pt, fill: rgb("596273"))[#date]
+      ]
+    ]
+    pagebreak()
+  }
+
+  if cols == 1 { doc } else { columns(cols, doc) }
+}
+
+#show terms: it => {
+  it.children
+    .map(child => [
+      #strong[#child.term]
+      #block(inset: (left: 1.5em, top: -0.4em))[#child.description]
+    ])
+    .join()
+}
+
+#show: doc => conf(
+$if(title)$
+  title: [$title$],
+$endif$
+$if(subtitle)$
+  subtitle: [$subtitle$],
+$endif$
+$if(author)$
+  authors: (
+$for(author)$
+$if(author.name)$
+    (name: "$author.name$", affiliation: "$author.affiliation$", email: "$author.email$"),
+$else$
+    (name: "$author$", affiliation: "", email: ""),
+$endif$
+$endfor$
+  ),
+$endif$
+$if(keywords)$
+  keywords: ($for(keywords)$$keyword$$sep$, $endfor$),
+$endif$
+$if(date)$
+  date: "$date$",
+$endif$
+$if(lang)$
+  lang: "$lang$",
+$endif$
+$if(region)$
+  region: "$region$",
+$endif$
+$if(margin)$
+  margin: ($for(margin/pairs)$$margin.key$: $margin.value$, $endfor$),
+$endif$
+$if(papersize)$
+  paper: "$papersize$",
+$endif$
+$if(mainfont)$
+  font: ("$mainfont$",),
+$endif$
+$if(fontsize)$
+  fontsize: $fontsize$,
+$endif$
+$if(section-numbering)$
+  sectionnumbering: "$section-numbering$",
+$endif$
+  cols: $if(columns)$$columns$$else$1$endif$,
+  doc,
+)
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+$for(include-before)$
+$include-before$
+$endfor$
+
+$if(toc)$
+#outline(title: [Contents], depth: $toc-depth$)
+#pagebreak(weak: true)
+$endif$
+
+$body$
+
+$for(include-after)$
+$include-after$
+$endfor$
