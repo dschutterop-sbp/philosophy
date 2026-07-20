@@ -2,14 +2,39 @@ import { readFile } from "node:fs/promises";
 
 // The Philosophy and each Skill are kept as separate prompt files under ./prompts
 // so they can be reviewed and edited independently of the request/response plumbing.
+// Each file opens with a `version:` frontmatter block; it is parsed out here and
+// never forwarded to the model, so version tracking cannot influence agent behaviour.
 const promptsDir = new URL("./prompts/", import.meta.url);
-const readPrompt = async (file) => (await readFile(new URL(file, promptsDir), "utf8")).trim();
-const [philosophy, skillInterpret, skillDirections, skillConformance] = await Promise.all([
+
+function parsePrompt(raw, file) {
+  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+  if (!match) throw new Error(`${file} is missing its version frontmatter.`);
+  const version = match[1].match(/^version:\s*(\S+)\s*$/m)?.[1];
+  if (!version) throw new Error(`${file} frontmatter has no version.`);
+  return { version, body: match[2].trim() };
+}
+
+async function readPrompt(file) {
+  return parsePrompt(await readFile(new URL(file, promptsDir), "utf8"), file);
+}
+
+const [philosophyPrompt, skillInterpretPrompt, skillDirectionsPrompt, skillConformancePrompt] = await Promise.all([
   readPrompt("philosophy.md"),
   readPrompt("skill-interpret.md"),
   readPrompt("skill-directions.md"),
   readPrompt("skill-conformance.md"),
 ]);
+
+const skillVersions = new Set([skillInterpretPrompt.version, skillDirectionsPrompt.version, skillConformancePrompt.version]);
+if (skillVersions.size > 1) throw new Error(`Skill prompt files disagree on version (${[...skillVersions].join(", ")}); bump them together.`);
+
+export const philosophyVersion = philosophyPrompt.version;
+export const skillVersion = skillInterpretPrompt.version;
+
+const philosophy = philosophyPrompt.body;
+const skillInterpret = skillInterpretPrompt.body;
+const skillDirections = skillDirectionsPrompt.body;
+const skillConformance = skillConformancePrompt.body;
 
 const interpretationSchema = { type: "object", additionalProperties: false, required: ["recommendation", "observation", "organisationalRelevance", "semanticDirection", "rejectedFrames", "avoid", "principlesApplied"], properties: {
   recommendation: { type: "string", enum: ["develop_direction", "do_not_publish"] }, observation: { type: "string" }, organisationalRelevance: { type: "string" }, semanticDirection: { type: "string" }, rejectedFrames: { type: "array", items: { type: "string" } }, avoid: { type: "array", items: { type: "string" } }, principlesApplied: { type: "array", items: { type: "string" } },

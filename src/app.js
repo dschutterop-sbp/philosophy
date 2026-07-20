@@ -7,6 +7,7 @@ let uploadedPhotoUrl = null;
 let selectedDirection = null;
 let activeContext = null;
 let activeInterpretation = null;
+let activeVersions = { philosophy: PHILOSOPHY_VERSION, skill: SKILL_VERSION };
 let mode = "demo";
 let brand = "unbranded";
 
@@ -63,8 +64,14 @@ $("#brand-toggle").addEventListener("click", (event) => {
 });
 setBrand(brand);
 
-$("#philosophy-version").textContent = PHILOSOPHY_VERSION;
-$("#skill-version").textContent = SKILL_VERSION;
+// Reflects whichever prompt versions actually produced the active draft: the static
+// pipeline.js constants for demo mode, or the live prompt files' own frontmatter for live mode.
+function renderVersions(versions) {
+  activeVersions = versions;
+  $("#philosophy-version").textContent = activeVersions.philosophy;
+  $("#skill-version").textContent = activeVersions.skill;
+}
+renderVersions(activeVersions);
 
 function readContext() {
   return {
@@ -139,6 +146,7 @@ $("#prepare").addEventListener("click", async () => {
     $("#events").value = activeContext.blockingEvents;
     $("#day").value = activeContext.day;
     $("#mode-badge").textContent = modeCopy[result.mode].badge;
+    renderVersions(result.versions);
     const openingLabel = result.mode === "live" ? "Live opening decision" : "Demo opening decision";
     $("#opening-result").textContent = result.opening.isOpen ? `${openingLabel}: cart opens. Interpretation is ready for review.` : `${openingLabel}: cart stays closed. No Story is prepared.`;
     if (!result.opening.isOpen || result.interpretation.recommendation === "do_not_publish") { $("#review").classList.add("hidden"); return; }
@@ -159,4 +167,4 @@ $("#prepare").addEventListener("click", async () => {
 
 $("#iterate").addEventListener("click", () => { $("#decision-result").textContent = "Iteration requested. Return to the selected direction; the interpretation remains intact."; });
 $("#cancel").addEventListener("click", () => { $("#decision-result").textContent = "Cancelled. The decision and its rationale are recorded as no publication."; });
-$("#publish").addEventListener("click", () => { $("#decision-result").textContent = `Approved for publication: ${selectedDirection.id}. The approved Story is bound to Philosophy v${PHILOSOPHY_VERSION} and Skill v${SKILL_VERSION}.`; });
+$("#publish").addEventListener("click", () => { $("#decision-result").textContent = `Approved for publication: ${selectedDirection.id}. The approved Story is bound to Philosophy v${activeVersions.philosophy} and Skill v${activeVersions.skill}.`; });

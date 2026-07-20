@@ -31,10 +31,12 @@ Both modes share the same deterministic gate (`assessOpeningDecision`) and artef
 
 Live mode's prompts live as plain markdown under `server/prompts/`, one file per concept, so each can be reviewed or edited without touching request/response code:
 
-- `philosophy.md` — the persistent brand voice, audience and forbidden framing (`PHILOSOPHY_VERSION` in `src/pipeline.js`).
-- `skill-interpret.md`, `skill-directions.md`, `skill-conformance.md` — task-specific instructions for the three structured OpenAI calls (`SKILL_VERSION`).
+- `philosophy.md` — the persistent brand voice, audience and forbidden framing.
+- `skill-interpret.md`, `skill-directions.md`, `skill-conformance.md` — task-specific instructions for the three structured OpenAI calls.
 
 `server/openai.js` loads all four once at startup and prepends `philosophy.md` to whichever skill instructions a given call needs.
+
+Each file opens with a `version:` frontmatter block (e.g. `---\nversion: 1.1.0\n---`). `openai.js` parses that out and never forwards it to the model, so bumping a version cannot influence agent behaviour — it only changes what the app reports. The three `skill-*.md` files are versioned together as one Skill; the server refuses to start if they disagree, so a coordinated edit means bumping all three. `/api/prepare` returns the real versions that produced each draft (`response.versions`), and the review screen's `Philosophy · v…` / `Skill · v…` badges and the Publish confirmation are driven by that response rather than a fixed constant. Demo mode reports its own, separate versions — `PHILOSOPHY_VERSION`/`SKILL_VERSION` in `src/pipeline.js` — since it doesn't read the prompt files at all; the two can legitimately show different numbers when one has changed and the other hasn't.
 
 ## Settings for live agentic mode
 

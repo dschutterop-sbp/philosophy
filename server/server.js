@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import { resolve, sep } from "node:path";
 import { config } from "./config.js";
 import { liveContext } from "./live-context.js";
-import { conformance as liveConformance, directions as liveDirections, interpret as liveInterpret } from "./openai.js";
-import { assessOpeningDecision, conformanceCheck, createDirections, interpret as staticInterpret, validateArtefact } from "../src/pipeline.js";
+import { conformance as liveConformance, directions as liveDirections, interpret as liveInterpret, philosophyVersion as livePhilosophyVersion, skillVersion as liveSkillVersion } from "./openai.js";
+import { assessOpeningDecision, conformanceCheck, createDirections, interpret as staticInterpret, PHILOSOPHY_VERSION, SKILL_VERSION, validateArtefact } from "../src/pipeline.js";
 
 const settings = config();
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -31,24 +31,26 @@ const closedInterpretation = (reason) => ({ recommendation: "do_not_publish", re
 // Demo: the Philosophy layer runs locally against the supplied static data, no external calls.
 async function prepareDemo({ day, temperatureC, forecastC, blockingEvents, opensAt, closesAt, products }) {
   const context = { date: new Date().toISOString().slice(0, 10), day, temperatureC, forecastC, blockingEvents, opensAt, closesAt, products };
+  const versions = { philosophy: PHILOSOPHY_VERSION, skill: SKILL_VERSION };
   const opening = assessOpeningDecision(context);
-  if (!opening.isOpen) return { context, opening, interpretation: closedInterpretation("The supplied static conditions do not support opening."), directions: [] };
+  if (!opening.isOpen) return { context, opening, interpretation: closedInterpretation("The supplied static conditions do not support opening."), directions: [], versions };
   const interpretation = staticInterpret(context);
   const generated = createDirections(context, interpretation);
   const checked = generated.map((direction) => ({ ...direction, validation: validateArtefact(context, direction), semanticConformance: conformanceCheck(direction, interpretation) }));
-  return { context, opening, interpretation, directions: checked };
+  return { context, opening, interpretation, directions: checked, versions };
 }
 
 // Live: verified real-world context is read, then Philosophy is applied agentically via the OpenAI Responses API.
 async function prepareLive(supplied) {
   const context = await liveContext(settings, supplied);
+  const versions = { philosophy: livePhilosophyVersion, skill: liveSkillVersion };
   const opening = assessOpeningDecision(context);
-  if (!opening.isOpen) return { context, opening, interpretation: closedInterpretation("The live operating conditions do not support opening."), directions: [] };
+  if (!opening.isOpen) return { context, opening, interpretation: closedInterpretation("The live operating conditions do not support opening."), directions: [], versions };
   const interpretation = await liveInterpret(settings, context);
-  if (interpretation.recommendation === "do_not_publish") return { context, opening, interpretation, directions: [] };
+  if (interpretation.recommendation === "do_not_publish") return { context, opening, interpretation, directions: [], versions };
   const generated = (await liveDirections(settings, context, interpretation)).directions;
   const checked = await Promise.all(generated.map(async (direction) => ({ ...direction, validation: validateArtefact(context, direction), semanticConformance: await liveConformance(settings, direction, interpretation) })));
-  return { context, opening, interpretation, directions: checked };
+  return { context, opening, interpretation, directions: checked, versions };
 }
 
 createServer(async (request, response) => {
