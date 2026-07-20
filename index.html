@@ -9,7 +9,11 @@
   <body>
     <main class="shell">
       <header class="masthead">
-        <p class="eyebrow">Il Tiratore · Philosophy layer</p>
+        <div class="mode-toggle" id="brand-toggle" role="radiogroup" aria-label="Branding">
+          <button type="button" class="mode-option selected" data-brand="branded" role="radio" aria-checked="true">Il Tiratore branded</button>
+          <button type="button" class="mode-option" data-brand="unbranded" role="radio" aria-checked="false">Unbranded</button>
+        </div>
+        <p class="eyebrow" id="masthead-eyebrow">Il Tiratore · Philosophy layer</p>
         <h1>Open the cart. Prepare the story.</h1>
         <p class="intro">A real opening decision becomes a reviewable interpretation before a Story is ready to publish.</p>
       </header>
@@ -62,7 +66,7 @@
           <div class="story-frame" aria-label="Instagram Story preview">
             <img id="story-image" alt="Uploaded cart and quay photo preview" />
             <div class="story-overlay"></div>
-            <div class="story-copy"><p id="story-caption"></p><p class="story-credit">IL TIRATORE</p></div>
+            <div class="story-copy"><p id="story-caption"></p><p class="story-credit" id="story-credit">IL TIRATORE</p></div>
           </div>
           <aside class="decision-panel">
             <p class="eyebrow">Approve the pair</p>

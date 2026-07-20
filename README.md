@@ -21,6 +21,10 @@ A toggle at the top of the page switches how the Philosophy layer runs:
 
 Both modes share the same deterministic gate (`assessOpeningDecision`) and artefact validation (`validateArtefact`), so the two paths are directly comparable — demo mode is a faithful stand-in for what live mode does, not a separate toy.
 
+### Branded vs. unbranded
+
+A second toggle in the masthead switches the visible identity between **Il Tiratore branded** and **Unbranded**. This only swaps display labels — the page title, eyebrow, the Story's credit line, and the name shown on the placeholder photo — so the same Philosophy engine (audience, character, forbidden framing) can be demonstrated as a generic, reusable review layer rather than something specific to this one brand. It's independent of the demo/live toggle and doesn't affect the interpretation itself.
+
 ## Test
 
 ```sh
