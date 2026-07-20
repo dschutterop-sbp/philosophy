@@ -1,6 +1,3 @@
-export const PHILOSOPHY_VERSION = "1.0.0";
-export const SKILL_VERSION = "0.1.0";
-
 const forbiddenPatterns = [
   /beat the heat/i,
   /limited time/i,

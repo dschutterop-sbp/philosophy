@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import { resolve, sep } from "node:path";
 import { config } from "./config.js";
 import { liveContext } from "./live-context.js";
-import { conformance as liveConformance, directions as liveDirections, interpret as liveInterpret, philosophyVersion as livePhilosophyVersion, skillVersion as liveSkillVersion } from "./openai.js";
-import { assessOpeningDecision, conformanceCheck, createDirections, interpret as staticInterpret, PHILOSOPHY_VERSION, SKILL_VERSION, validateArtefact } from "../src/pipeline.js";
+import { conformance as liveConformance, directions as liveDirections, interpret as liveInterpret, philosophyVersion, skillVersion } from "./openai.js";
+import { assessOpeningDecision, conformanceCheck, createDirections, interpret as staticInterpret, validateArtefact } from "../src/pipeline.js";
 
 const settings = config();
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -28,10 +28,13 @@ function publicFile(pathname) {
 }
 const closedInterpretation = (reason) => ({ recommendation: "do_not_publish", reason });
 
+// Demo and live are two engines for the same Philosophy/Skill, so both cite the same
+// versions - sourced from the prompt files' own frontmatter, parsed once in openai.js.
+const versions = { philosophy: philosophyVersion, skill: skillVersion };
+
 // Demo: the Philosophy layer runs locally against the supplied static data, no external calls.
 async function prepareDemo({ day, temperatureC, forecastC, blockingEvents, opensAt, closesAt, products }) {
   const context = { date: new Date().toISOString().slice(0, 10), day, temperatureC, forecastC, blockingEvents, opensAt, closesAt, products };
-  const versions = { philosophy: PHILOSOPHY_VERSION, skill: SKILL_VERSION };
   const opening = assessOpeningDecision(context);
   if (!opening.isOpen) return { context, opening, interpretation: closedInterpretation("The supplied static conditions do not support opening."), directions: [], versions };
   const interpretation = staticInterpret(context);
@@ -43,7 +46,6 @@ async function prepareDemo({ day, temperatureC, forecastC, blockingEvents, opens
 // Live: verified real-world context is read, then Philosophy is applied agentically via the OpenAI Responses API.
 async function prepareLive(supplied) {
   const context = await liveContext(settings, supplied);
-  const versions = { philosophy: livePhilosophyVersion, skill: liveSkillVersion };
   const opening = assessOpeningDecision(context);
   if (!opening.isOpen) return { context, opening, interpretation: closedInterpretation("The live operating conditions do not support opening."), directions: [], versions };
   const interpretation = await liveInterpret(settings, context);
