@@ -6,7 +6,7 @@ let selectedDirection = null;
 let activeContext = null;
 let activeInterpretation = null;
 let mode = "demo";
-let brand = "branded";
+let brand = "unbranded";
 
 const modeCopy = {
   demo: { description: "Demo mode runs the Philosophy layer locally against the values below. No weather, calendar or OpenAI calls are made.", cta: "Evaluate static context…", badge: "Demo" },

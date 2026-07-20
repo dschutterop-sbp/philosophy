@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Il Tiratore · Story review</title>
+    <title>Story review</title>
     <link rel="stylesheet" href="src/styles.css" />
   </head>
-  <body>
+  <body class="unbranded">
     <main class="shell">
       <header class="masthead">
         <div class="mode-toggle" id="brand-toggle" role="radiogroup" aria-label="Branding">
-          <button type="button" class="mode-option selected" data-brand="branded" role="radio" aria-checked="true">Il Tiratore branded</button>
-          <button type="button" class="mode-option" data-brand="unbranded" role="radio" aria-checked="false">Unbranded</button>
+          <button type="button" class="mode-option" data-brand="branded" role="radio" aria-checked="false">Il Tiratore branded</button>
+          <button type="button" class="mode-option selected" data-brand="unbranded" role="radio" aria-checked="true">Unbranded</button>
         </div>
-        <p class="eyebrow" id="masthead-eyebrow">Il Tiratore · Philosophy layer</p>
+        <p class="eyebrow" id="masthead-eyebrow">Philosophy layer</p>
         <p class="intro">A real opening decision becomes a reviewable interpretation before a Story is ready to publish.</p>
       </header>
 
@@ -65,7 +65,7 @@
           <div class="story-frame" aria-label="Instagram Story preview">
             <img id="story-image" alt="Uploaded cart and quay photo preview" />
             <div class="story-overlay"></div>
-            <div class="story-copy"><p id="story-caption"></p><p class="story-credit" id="story-credit">IL TIRATORE</p></div>
+            <div class="story-copy"><p id="story-caption"></p><p class="story-credit hidden" id="story-credit"></p></div>
           </div>
           <aside class="decision-panel">
             <p class="eyebrow">Approve the pair</p>
