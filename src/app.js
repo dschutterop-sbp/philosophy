@@ -1,4 +1,5 @@
 import { referenceFor } from "./paper-references.js";
+import { showPaperReference } from "./paper-viewer.js";
 
 const $ = (selector) => document.querySelector(selector);
 let mode = "demo", draft = null, selected = null, photo = null, approval = null;
@@ -27,11 +28,11 @@ function sourceLink(key, className = "source-link") {
   const link = document.createElement("a");
   link.className = className;
   link.href = reference.href;
-  link.target = "_blank";
-  link.rel = "noopener";
+  link.dataset.paperReference = key;
   link.textContent = reference.label;
   link.title = reference.description;
   link.setAttribute("aria-label", `${reference.label}: ${reference.description}`);
+  link.addEventListener("click", (event) => { event.preventDefault(); showPaperReference(key); });
   return link;
 }
 function attachSourceReference(selector, key) {
@@ -78,9 +79,16 @@ const architectureStages = [
 ];
 $("#architecture").innerHTML = architectureStages.map(([label, key]) => {
   const reference = referenceFor(key);
-  return `<div>${label}<a href="${reference.href}" target="_blank" rel="noopener" title="${reference.description}">${reference.label}</a></div>`;
+  return `<div>${label}<a href="${reference.href}" data-paper-reference="${key}" title="${reference.description}">${reference.label}</a></div>`;
 }).join("");
+$("#architecture").addEventListener("click", (event) => {
+  const link = event.target.closest("a[data-paper-reference]");
+  if (!link) return;
+  event.preventDefault();
+  showPaperReference(link.dataset.paperReference);
+});
 attachSourceReference("#setup", "context");
 attachSourceReference("#interpretation-stage", "interpretation");
 attachSourceReference("#artefact-stage", "conformance");
+$("#paper-reader-close").addEventListener("click", () => $("#paper-reader").close());
 $("#story-image").src = placeholder; setMode("demo"); trace("Reference ready", "Choose a mode and prepare a decision.", "system", { reference: "Philosophy Layer", supportedStages: ["context", "interpretation", "directions", "validation", "conformance", "approval", "audit"] });
