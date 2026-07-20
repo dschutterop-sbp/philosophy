@@ -5,7 +5,7 @@ export function config() {
   const latitude = Number(process.env.WEATHER_LATITUDE);
   const longitude = Number(process.env.WEATHER_LONGITUDE);
   const missingLive = liveRequired.filter((name) => !process.env[name]);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) missingLive.push("WEATHER_LATITUDE/WEATHER_LONGITUDE");
+  if (!process.env.WEATHER_LATITUDE || !process.env.WEATHER_LONGITUDE || !Number.isFinite(latitude) || !Number.isFinite(longitude)) missingLive.push("WEATHER_LATITUDE/WEATHER_LONGITUDE");
   return {
     timezone: process.env.TIMEZONE || "Europe/Amsterdam",
     latitude, longitude,
