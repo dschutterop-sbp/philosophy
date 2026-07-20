@@ -5,10 +5,17 @@
 
 This is an inspectable implementation of the paper’s decision chain. It is deliberately a review system, not a publisher: the final action is **Approve for publication**, which produces a short-lived, exact-state approval record for a separate publisher to verify.
 
+## Paper source
+
+The paper is maintained as the repository’s canonical, editable source at
+[paper/philosophy_layer.md](paper/philosophy_layer.md). It is intentionally
+versioned alongside this reference implementation so that interface evidence
+and the paper’s decision-trace claims can evolve together.
+
 ## License and citation
 
 The reference implementation is licensed under [Apache License 2.0](LICENSE).
-The whitepaper PDF and its publication source are licensed under
+The paper source is licensed under
 [CC BY 4.0](PAPER-LICENSE.md). See [CITATION.cff](CITATION.cff) for software
 and paper citation metadata. See [PUBLICATION-CHECKLIST.md](PUBLICATION-CHECKLIST.md)
 before making a repository public.
