@@ -1,25 +1,74 @@
-# Il Tiratore - Philosophy Layer prototype
+# Il Tiratore - Philosophy Layer
 
-A local, dependency-free prototype of the first human review gate for an Instagram Story.
+A containerised Instagram Story review service. It has a local demo mode and a live, agentic mode; both stop at the first human gate.
 
-## Run locally
+## Start locally
 
-Copy `.env.example` to `.env`, fill in the secrets and location, then start the container:
+Copy the environment template once:
+
+```sh
+cp .env.example .env
+```
+
+Demo mode needs no secrets. For live mode, complete the settings below and start the service:
 
 ```sh
 docker compose up --build
 ```
 
-Open [http://localhost:8080](http://localhost:8080). Upload a quay photo, confirm the opening facts, and select **Prepare review**. Set `STORY_PORT` to use another local port.
+Open [http://localhost:8080](http://localhost:8080), upload a quay photo, select **Live · agentic**, then choose **Prepare review**. Set `STORY_PORT` before starting Compose to use a different host port.
 
 ### Demo vs. live mode
 
 A toggle at the top of the page switches how the Philosophy layer runs:
 
 - **Demo · static data** — the deterministic Philosophy engine in `src/pipeline.js` runs against the values you type into the form. No external calls are made, so this works with no credentials at all.
-- **Live · agentic** — the server reads real weather (Open-Meteo) and same-day calendar events (Google Calendar), then sends only that verified context to the OpenAI Responses API, which applies the Philosophy prompt agentically to produce the interpretation, directions and semantic conformance checks (`server/openai.js`). This requires `OPENAI_API_KEY`, the Google OAuth credentials and `WEATHER_LATITUDE`/`WEATHER_LONGITUDE` in `.env`; `/api/prepare` returns a 400 naming what's missing if you select live mode without them.
+- **Live · agentic** — the server reads real weather (Open-Meteo) and same-day calendar events (Google Calendar), then sends only verified context to the OpenAI Responses API. The model creates the interpretation, directions and semantic-conformance checks in separate structured steps (`server/openai.js`). This requires the settings in the next section. `/api/prepare` returns HTTP 400 naming missing settings instead of falling back to demo data.
 
 Both modes share the same deterministic gate (`assessOpeningDecision`) and artefact validation (`validateArtefact`), so the two paths are directly comparable — demo mode is a faithful stand-in for what live mode does, not a separate toy.
+
+## Settings for live agentic mode
+
+Put these values in the local `.env` file only. `.env` is ignored by Git; commit neither API keys nor OAuth tokens.
+
+| Setting | Required | Purpose |
+| --- | --- | --- |
+| `WEATHER_LATITUDE` | Yes | Latitude of the cart's actual location. |
+| `WEATHER_LONGITUDE` | Yes | Longitude of the cart's actual location. |
+| `TIMEZONE` | Yes | Local decision timezone; default is `Europe/Amsterdam`. |
+| `OPENING_MIN_TEMPERATURE_C` | Yes | Deterministic minimum for the opening decision; default is `18`. |
+| `OPENAI_API_KEY` | Yes | Server-only OpenAI API credential. |
+| `OPENAI_MODEL` | Yes | Model for the interpreter, creative-direction and conformance calls; default is `gpt-5.6-terra`. |
+| `GOOGLE_CALENDAR_ID` | Yes | Calendar to evaluate; `primary` is the authenticated account's primary calendar. |
+| `GOOGLE_CLIENT_ID` | Yes | OAuth 2.0 client ID from the Google Cloud project. |
+| `GOOGLE_CLIENT_SECRET` | Yes | OAuth 2.0 client secret from the Google Cloud project. |
+| `GOOGLE_REFRESH_TOKEN` | Yes | Long-lived refresh token belonging to the chosen calendar user. |
+
+### Google Calendar setup
+
+1. Create or select a Google Cloud project and enable the Google Calendar API.
+2. Configure an OAuth consent screen and create an OAuth client for the environment that will run this service.
+3. Authorise that client once with the least-privileged scope `https://www.googleapis.com/auth/calendar.events.readonly` and request offline access so Google returns a refresh token.
+4. Set `GOOGLE_CALENDAR_ID=primary`, or set the ID of a calendar the authorised account may read.
+5. Copy the client ID, client secret and refresh token into `.env`.
+
+The service exchanges the refresh token server-side, requests same-day events with `singleEvents=true`, and counts non-cancelled, non-transparent events as blocking. It never exposes Google credentials, event details or the OpenAI key to the browser.
+
+### Agentic boundaries
+
+Live mode is assisted, not autonomous publication. The server owns verified facts, the deterministic opening decision, validation, versions and audit records. The model may interpret verified context and explore copy only within the Philosophy; it may not alter opening hours, invent availability or publish. **Iterate**, **Publish** and **Cancel** remain human decisions.
+
+Each prepared run appends its context, interpretation, directions and checks to `story_audit`, the named Docker volume. Treat that volume as operational data: retain it deliberately and restrict host access.
+
+### Pre-flight checklist
+
+Before using live mode, confirm:
+
+- the weather coordinates are the cart's exact location;
+- the Google Calendar API is enabled and the refresh token has the read-only event scope;
+- the chosen calendar contains only events that should block the opening decision, or transparent events are used for non-blocking entries;
+- the OpenAI key is valid and has access to the configured model;
+- `.env` exists locally and is not staged for Git.
 
 ### Branded vs. unbranded
 
@@ -33,7 +82,7 @@ npm test
 
 ## Delivery pipeline
 
-GitHub Actions runs the domain tests on each pull request and push to `main`. A separate job validates the Compose file and builds the production Nginx image. The workflow intentionally does not publish an image: registry publishing needs a chosen registry and credentials, which should be added as a separate deployment decision.
+GitHub Actions runs the domain tests on each pull request and push to `main`. A separate job validates Compose and builds the production Node image. The workflow intentionally does not publish an image: registry publishing needs a chosen registry and credentials, which should be added as a separate deployment decision.
 
 The deterministic opening and artefact rules are isolated in `src/pipeline.js`:
 
@@ -42,7 +91,3 @@ The deterministic opening and artefact rules are isolated in `src/pipeline.js`:
 3. bounded creative directions;
 4. deterministic validation and semantic conformance;
 5. the human decision: iterate, publish or cancel.
-
-## Live providers
-
-The server gets current temperature and daily forecast from Open-Meteo, reads same-day blocking events from Google Calendar using a server-side refresh token, and sends only the verified context to the OpenAI Responses API. Google access is read-only (`calendar.events.readonly`). The generated interpretation, directions and negative-first semantic checks are schema-constrained and each prepared draft is appended to the Docker volume as an audit record.
