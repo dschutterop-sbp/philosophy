@@ -18,8 +18,9 @@ async function readPrompt(file) {
   return parsePrompt(await readFile(new URL(file, promptsDir), "utf8"), file);
 }
 
-const [philosophyPrompt, skillInterpretPrompt, skillDirectionsPrompt, skillConformancePrompt] = await Promise.all([
+const [philosophyPrompt, strategyPrompt, skillInterpretPrompt, skillDirectionsPrompt, skillConformancePrompt] = await Promise.all([
   readPrompt("philosophy.md"),
+  readPrompt("strategy.md"),
   readPrompt("skill-interpret.md"),
   readPrompt("skill-directions.md"),
   readPrompt("skill-conformance.md"),
@@ -29,15 +30,17 @@ const skillVersions = new Set([skillInterpretPrompt.version, skillDirectionsProm
 if (skillVersions.size > 1) throw new Error(`Skill prompt files disagree on version (${[...skillVersions].join(", ")}); bump them together.`);
 
 export const philosophyVersion = philosophyPrompt.version;
+export const strategyVersion = strategyPrompt.version;
 export const skillVersion = skillInterpretPrompt.version;
 
 const philosophy = philosophyPrompt.body;
+const strategy = strategyPrompt.body;
 const skillInterpret = skillInterpretPrompt.body;
 const skillDirections = skillDirectionsPrompt.body;
 const skillConformance = skillConformancePrompt.body;
 
-const interpretationSchema = { type: "object", additionalProperties: false, required: ["recommendation", "observation", "organisationalRelevance", "semanticDirection", "rejectedFrames", "avoid", "principlesApplied"], properties: {
-  recommendation: { type: "string", enum: ["develop_direction", "do_not_publish"] }, observation: { type: "string" }, organisationalRelevance: { type: "string" }, semanticDirection: { type: "string" }, rejectedFrames: { type: "array", items: { type: "string" } }, avoid: { type: "array", items: { type: "string" } }, principlesApplied: { type: "array", items: { type: "string" } },
+const interpretationSchema = { type: "object", additionalProperties: false, required: ["recommendation", "reason", "decisionClass", "observation", "contextEvidence", "organisationalRelevance", "semanticDirection", "rejectedFrames", "avoid", "principlesApplied"], properties: {
+  recommendation: { type: "string", enum: ["develop_direction", "do_not_publish"] }, reason: { type: ["string", "null"] }, decisionClass: { type: "string" }, observation: { type: "string" }, contextEvidence: { type: "array", items: { type: "string" } }, organisationalRelevance: { type: "string" }, semanticDirection: { type: "string" }, rejectedFrames: { type: "array", items: { type: "string" } }, avoid: { type: "array", items: { type: "string" } }, principlesApplied: { type: "array", items: { type: "string" } },
 } };
 const directionsSchema = { type: "object", additionalProperties: false, required: ["directions"], properties: { directions: { type: "array", minItems: 1, maxItems: 3, items: { type: "object", additionalProperties: false, required: ["id", "concept", "caption", "fit", "nearestAvoid", "riskNote"], properties: { id: { type: "string" }, concept: { type: "string" }, caption: { type: "string" }, fit: { type: "string" }, nearestAvoid: { type: "string" }, riskNote: { type: "string" } } } } } };
 const conformanceSchema = { type: "object", additionalProperties: false, required: ["conforms", "violations", "advisoryFit"], properties: { conforms: { type: "boolean" }, violations: { type: "array", items: { type: "string" } }, advisoryFit: { type: "boolean" } } };
@@ -49,11 +52,11 @@ function outputText(response) {
   return item.text;
 }
 
-async function structured(settings, name, schema, instructions, payload) {
+async function structured(settings, name, schema, instructions, payload, model = settings.openaiModel) {
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { authorization: `Bearer ${settings.openaiKey}`, "content-type": "application/json" },
-    body: JSON.stringify({ model: settings.openaiModel, instructions: `${philosophy}\n\n${instructions}`, input: JSON.stringify(payload), text: { format: { type: "json_schema", name, strict: true, schema } } }),
+    body: JSON.stringify({ model, instructions: `${philosophy}\n\n${strategy}\n\n${instructions}`, input: JSON.stringify(payload), text: { format: { type: "json_schema", name, strict: true, schema } } }),
   });
   if (!response.ok) throw new Error(`OpenAI request failed (${response.status}): ${await response.text()}`);
   return JSON.parse(outputText(await response.json()));
@@ -66,5 +69,5 @@ export async function directions(settings, context, interpretation) {
   return structured(settings, "il_tiratore_directions", directionsSchema, skillDirections, { context, interpretation });
 }
 export async function conformance(settings, direction, interpretation) {
-  return structured(settings, "il_tiratore_conformance", conformanceSchema, skillConformance, { direction, interpretation });
+  return structured(settings, "il_tiratore_conformance", conformanceSchema, skillConformance, { direction, interpretation }, settings.conformanceModel);
 }

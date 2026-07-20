@@ -1,116 +1,55 @@
-# Il Tiratore - Philosophy Layer
+# The Philosophy Layer — reference implementation
 
-A containerised Instagram Story review service. It has a local demo mode and a live, agentic mode; both stop at the first human gate.
+This is an inspectable implementation of the paper’s decision chain. It is deliberately a review system, not a publisher: the final action is **Approve for publication**, which produces a short-lived, exact-state approval record for a separate publisher to verify.
 
-## Start locally
+## What the interface demonstrates
 
-Copy the environment template once:
+The screen is divided into two synchronized views:
+
+- **End-user view** — verified context, an interpretation gate, candidate Story directions, and an artefact gate.
+- **Under the hood** — the API calls, source/model work, human gates, signing, and state transitions caused by each action.
+
+The flow is intentionally staged:
+
+`Context + provenance → Philosophy interpretation → human gate → Creative Skill → validation + semantic conformance → human gate → signed approval → hash-chained audit`
+
+No creative directions are generated before a reviewer approves the interpretation. A reviewer can select silence at either decision point.
+
+## Architectural guarantees
+
+- **Server-owned drafts.** The browser never submits an artefact manifest to be signed. It can select only a stored candidate from a stored draft.
+- **Exact-state binding.** The approval manifest records hashes of the interpretation, media and text; selected direction, account, reviewer, versions, timestamp, and expiry are also bound.
+- **Provenance.** Live weather, calendar and configured operations facts contain source and observation metadata. Demo values are explicitly marked as reviewer-supplied scenarios.
+- **Layer boundaries.** Philosophy and temporary Strategy are separate versioned documents. Context, Skill, conformance policy and template versions are recorded with every draft.
+- **Negative-first conformance.** Each approved `avoid` / rejected-frame boundary is checked and displayed individually; positive fit remains advisory.
+- **Silence.** Routine events can produce `do_not_publish`, including in the deterministic demo via **Recent posts**.
+- **Auditability.** Every meaningful transition is written as a hash-chained JSONL event. For production, send the same events to an access-controlled append-only audit system.
+
+The built-in reviewer identity is a reference adapter controlled by deployment configuration. Replace it with authenticated identity and role claims before treating this as a production authorisation system.
+
+## Run
 
 ```sh
 cp .env.example .env
-```
-
-Demo mode needs no secrets. For live mode, complete the settings below and start the service:
-
-```sh
 docker compose up --build
 ```
 
-Open [http://localhost:8080](http://localhost:8080), upload a quay photo, select **Live · agentic**, then choose **Prepare review**. Set `STORY_PORT` before starting Compose to use a different host port.
+Open [http://localhost:8080](http://localhost:8080). Demo mode requires no credentials. Live mode reads weather and calendar data and takes opening hours/products only from deployment configuration, never from the browser.
 
-### Demo vs. live mode
+## Live configuration
 
-A toggle at the top of the page switches how the Philosophy layer runs:
+Live mode needs `WEATHER_LATITUDE`, `WEATHER_LONGITUDE`, OpenAI credentials, and Google Calendar OAuth credentials. See [.env.example](/Users/daniel/Documents/Philosophy/.env.example) for all settings.
 
-- **Demo · static data** — the deterministic Philosophy engine in `src/pipeline.js` runs against the values you type into the form. No external calls are made, so this works with no credentials at all.
-- **Live · agentic** — the server reads real weather (Open-Meteo) and same-day calendar events (Google Calendar), then sends only verified context to the OpenAI Responses API. The model creates the interpretation, directions and semantic-conformance checks in separate structured steps (`server/openai.js`). This requires the settings in the next section. `/api/prepare` returns HTTP 400 naming missing settings instead of falling back to demo data.
+`OPENAI_CONFORMANCE_MODEL` can be set to a distinct model from `OPENAI_MODEL` to mitigate correlated interpreter/executor/judge failure. It is a mitigation, not proof of independence.
 
-Both modes share the same deterministic gate (`assessOpeningDecision`) and artefact validation (`validateArtefact`), so the two paths are directly comparable — demo mode is a faithful stand-in for what live mode does, not a separate toy.
+## Governance and evaluation
 
-### Prompt files
+[philosophy.md](/Users/daniel/Documents/Philosophy/server/prompts/philosophy.md) is stable organisational intent; [strategy.md](/Users/daniel/Documents/Philosophy/server/prompts/strategy.md) is temporary operating direction. Changes to either should be reviewed, version-bumped, tested against historical scenarios, and approved by its owner. The reference keeps owner metadata in the Strategy frontmatter; production should integrate this with the organisation’s change-management system.
 
-Live mode's prompts live as plain markdown under `server/prompts/`, one file per concept, so each can be reviewed or edited without touching request/response code:
-
-- `philosophy.md` — the persistent brand voice, audience and forbidden framing.
-- `skill-interpret.md`, `skill-directions.md`, `skill-conformance.md` — task-specific instructions for the three structured OpenAI calls.
-
-`server/openai.js` loads all four once at startup and prepends `philosophy.md` to whichever skill instructions a given call needs.
-
-Each file opens with a `version:` frontmatter block (e.g. `---\nversion: 1.1.0\n---`). `openai.js` parses that out and never forwards it to the model, so bumping a version cannot influence agent behaviour — it only changes what the app reports. The three `skill-*.md` files are versioned together as one Skill; the server refuses to start if they disagree, so a coordinated edit means bumping all three. `/api/prepare` returns the real versions that produced each draft (`response.versions`), and the review screen's `Philosophy · v…` / `Skill · v…` badges and the Publish confirmation are driven by that response rather than a fixed constant. Demo mode reuses these same versions rather than tracking its own — it's a different execution engine for the same Philosophy and Skill, not a separately versioned artifact — so a version bump in `philosophy.md` shows up in both modes' badges after the server restarts and picks up the file.
-
-## Settings for live agentic mode
-
-Put these values in the local `.env` file only. `.env` is ignored by Git; commit neither API keys nor OAuth tokens.
-
-| Setting | Required | Purpose |
-| --- | --- | --- |
-| `WEATHER_LATITUDE` | Yes | Latitude of the cart's actual location. |
-| `WEATHER_LONGITUDE` | Yes | Longitude of the cart's actual location. |
-| `TIMEZONE` | Yes | Local decision timezone; default is `Europe/Amsterdam`. |
-| `OPENING_MIN_TEMPERATURE_C` | Yes | Deterministic minimum for the opening decision; default is `18`. |
-| `OPENAI_API_KEY` | Yes | Server-only OpenAI API credential. |
-| `OPENAI_MODEL` | Yes | Model for the interpreter, creative-direction and conformance calls; default is `gpt-5.6-terra`. |
-| `GOOGLE_CALENDAR_ID` | Yes | Calendar to evaluate; `primary` is the authenticated account's primary calendar. |
-| `GOOGLE_CLIENT_ID` | Yes | OAuth 2.0 client ID from the Google Cloud project. |
-| `GOOGLE_CLIENT_SECRET` | Yes | OAuth 2.0 client secret from the Google Cloud project. |
-| `GOOGLE_REFRESH_TOKEN` | Yes | Long-lived refresh token belonging to the chosen calendar user. |
-
-### Google Calendar setup
-
-1. Create or select a Google Cloud project and enable the Google Calendar API.
-2. Configure an OAuth consent screen and create an OAuth client for the environment that will run this service.
-3. Authorise that client once with the least-privileged scope `https://www.googleapis.com/auth/calendar.events.readonly` and request offline access so Google returns a refresh token.
-4. Set `GOOGLE_CALENDAR_ID=primary`, or set the ID of a calendar the authorised account may read.
-5. Copy the client ID, client secret and refresh token into `.env`.
-
-The service exchanges the refresh token server-side, requests same-day events with `singleEvents=true`, and counts non-cancelled, non-transparent events as blocking. It never exposes Google credentials, event details or the OpenAI key to the browser.
-
-### Agentic boundaries
-
-Live mode is assisted, not autonomous publication. The server owns verified facts, the deterministic opening decision, validation, versions and audit records. The model may interpret verified context and explore copy only within the Philosophy; it may not alter opening hours, invent availability or publish. **Iterate**, **Publish** and **Cancel** remain human decisions.
-
-Each prepared run appends its context, interpretation, directions and checks to `story_audit`, the named Docker volume. Treat that volume as operational data: retain it deliberately and restrict host access.
-
-### Approval tokens
-
-Clicking **Publish** doesn't just show a confirmation message - it calls `POST /api/publish`, which builds an `approval_manifest` (the draft ID, mode, context, interpretation, the selected direction and its checks, and the Philosophy/Skill versions) and computes:
-
-```
-approval_token = sign(canonical_hash(approval_manifest))
-```
-
-`server/approval.js` implements both halves for real: `canonicalHash` serialises the manifest with sorted keys (so two semantically identical manifests always hash the same way) and SHA-256s it; `sign` is an HMAC-SHA256 over that hash using `APPROVAL_SIGNING_KEY` (or an openly-labelled demo key if that's unset - the response and UI both say which one was used). The mechanism runs identically in demo and live mode; only the manifest's content differs, since demo's context/interpretation are the mocked static-form data described above.
-
-The review screen shows the resulting `canonical_hash` and `approval_token` in full, plus a **Verify token** button that calls `POST /api/verify` to recompute the signature server-side and confirm it matches - so the round trip is something you can watch happen, not something to take on faith. Both the manifest and the token are appended to the audit log (`event: "approval"`) alongside the original `event: "prepare"` record for the same `draftId`.
-
-### Pre-flight checklist
-
-Before using live mode, confirm:
-
-- the weather coordinates are the cart's exact location;
-- the Google Calendar API is enabled and the refresh token has the read-only event scope;
-- the chosen calendar contains only events that should block the opening decision, or transparent events are used for non-blocking entries;
-- the OpenAI key is valid and has access to the configured model;
-- `.env` exists locally and is not staged for Git.
-
-### Branded vs. unbranded
-
-A second toggle in the masthead switches the visible identity between **Il Tiratore branded** and **Unbranded**. This only swaps display labels — the page title, eyebrow, the Story's credit line, and the name shown on the placeholder photo — so the same Philosophy engine (audience, character, forbidden framing) can be demonstrated as a generic, reusable review layer rather than something specific to this one brand. It's independent of the demo/live toggle and doesn't affect the interpretation itself.
+The test suite covers deterministic policy, silence, direction boundaries, approval signing, and server-owned draft transitions. [`evaluation/scenarios.json`](/Users/daniel/Documents/Philosophy/evaluation/scenarios.json) is a small, executable valid-interpretation-space corpus replayed in CI. It is intentionally a seed corpus; production evaluation should add human labels, reviewer disagreement/adjudication, holdouts, and the A/B/C/D ablation harness described in the paper.
 
 ## Test
 
 ```sh
-npm test
+node --test
 ```
-
-## Delivery pipeline
-
-GitHub Actions runs the domain tests on each pull request and push to `main`. A separate job validates Compose and builds the production Node image. The workflow intentionally does not publish an image: registry publishing needs a chosen registry and credentials, which should be added as a separate deployment decision.
-
-The deterministic opening and artefact rules are isolated in `src/pipeline.js`:
-
-1. verified operating context;
-2. Philosophy interpretation;
-3. bounded creative directions;
-4. deterministic validation and semantic conformance;
-5. the human decision: iterate, publish or cancel.

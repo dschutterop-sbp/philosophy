@@ -1,0 +1,14 @@
+[
+  {
+    "id": "warm-saturday-opening",
+    "context": { "day": "Saturday", "temperatureC": 23, "forecastC": 24, "blockingEvents": 0, "opensAt": "13:30", "closesAt": "18:00", "products": ["Aperol Spritz Sorbet"], "recentPosts": 0 },
+    "required": ["develop_direction", "audience_moment_extension"],
+    "mustReject": ["heat_relief", "urgency", "generic_seasonal_framing"]
+  },
+  {
+    "id": "routine-event-silence",
+    "context": { "day": "Saturday", "temperatureC": 23, "forecastC": 24, "blockingEvents": 0, "opensAt": "13:30", "closesAt": "18:00", "products": ["Aperol Spritz Sorbet"], "recentPosts": 2 },
+    "required": ["do_not_publish", "silence_routine_event"],
+    "mustReject": ["mandatory_output"]
+  }
+]

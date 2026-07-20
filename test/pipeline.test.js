@@ -30,6 +30,18 @@ test("opening decision requires every operating metric", () => {
   assert.equal(assessOpeningDecision({ ...context, blockingEvents: 1 }).isOpen, false);
 });
 
+test("opening policy is configurable and recorded with the decision", () => {
+  const result = assessOpeningDecision({ ...context, temperatureC: 19, forecastC: 19 }, 20);
+  assert.equal(result.isOpen, false);
+  assert.equal(result.policy.minimumTemperature, 20);
+});
+
+test("routine communication can explicitly select silence", () => {
+  const result = interpret({ ...context, recentPosts: 2 });
+  assert.equal(result.recommendation, "do_not_publish");
+  assert.match(result.reason, /recent/i);
+});
+
 test("interpreter produces a bounded audience-moment interpretation", () => {
   const result = interpret(context);
   assert.equal(result.recommendation, "develop_direction");
@@ -48,6 +60,12 @@ test("conformance blocks a sunshine cliche despite valid hours", () => {
   const badDirection = { concept: "cart", caption: "Beat the heat! Open 13:30-18:00\\nAperol Spritz Sorbet · Limoncello Spritz Sorbet", fit: "" };
   assert.equal(validateArtefact(context, badDirection).valid, false);
   assert.equal(conformanceCheck(badDirection, interpretation).conforms, false);
+});
+
+test("conformance reports the named approved boundary it evaluated", () => {
+  const result = conformanceCheck({ concept: "retro postcard", caption: "Today, 13:30-18:00\nAperol Spritz Sorbet · Limoncello Spritz Sorbet", fit: "afternoon" }, interpret(context));
+  assert.equal(result.conforms, false);
+  assert.ok(result.checks.some((check) => check.boundary === "vintage-retro styling" && !check.passed));
 });
 
 test("config flags empty (but present) weather coordinates as missing for live mode", () => {

@@ -15,6 +15,7 @@ export function config() {
     minimumTemperature: Number(process.env.OPENING_MIN_TEMPERATURE_C || 18),
     openaiKey: process.env.OPENAI_API_KEY,
     openaiModel: process.env.OPENAI_MODEL || "gpt-5.6-terra",
+    conformanceModel: process.env.OPENAI_CONFORMANCE_MODEL || process.env.OPENAI_MODEL || "gpt-5.6-terra",
     calendarId: process.env.GOOGLE_CALENDAR_ID || "primary",
     googleClientId: process.env.GOOGLE_CLIENT_ID,
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -23,5 +24,8 @@ export function config() {
     missingLive,
     approvalSigningKey: process.env.APPROVAL_SIGNING_KEY || demoSigningKey,
     usingDefaultSigningKey: !process.env.APPROVAL_SIGNING_KEY,
+    openingHours: process.env.OPENING_HOURS || "13:30-18:00",
+    products: (process.env.AVAILABLE_PRODUCTS || "Aperol Spritz Sorbet,Limoncello Spritz Sorbet").split(",").map((item) => item.trim()).filter(Boolean),
+    reviewer: { id: process.env.DEMO_REVIEWER_ID || "demo-publisher", role: process.env.DEMO_REVIEWER_ROLE || "publisher" },
   };
 }

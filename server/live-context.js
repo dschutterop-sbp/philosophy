@@ -40,8 +40,17 @@ async function calendar(settings, date) {
   return { blockingEvents: blockingEvents.length, calendarChecked: true };
 }
 
-export async function liveContext(settings, { opensAt, closesAt, products }) {
+export async function liveContext(settings) {
   const date = localDate(settings.timezone);
   const [conditions, agenda] = await Promise.all([weather(settings), calendar(settings, date)]);
-  return { date, day: weekday(date, settings.timezone), opensAt, closesAt, products, ...conditions, ...agenda };
+  const observedAt = new Date().toISOString();
+  const [opensAt, closesAt] = settings.openingHours.split("-");
+  return {
+    date, day: weekday(date, settings.timezone), opensAt, closesAt, products: settings.products, ...conditions, ...agenda,
+    provenance: {
+      weather: { source: "Open-Meteo", observedAt, validUntil: `${date}T23:59:59`, fields: ["temperatureC", "forecastC"] },
+      calendar: { source: `Google Calendar:${settings.calendarId}`, observedAt, validUntil: `${date}T23:59:59`, fields: ["blockingEvents"] },
+      operations: { source: "deployment configuration", observedAt, fields: ["opensAt", "closesAt", "products"] },
+    },
+  };
 }

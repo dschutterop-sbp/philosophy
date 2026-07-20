@@ -1,97 +1,13 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Story review</title>
-    <link rel="stylesheet" href="src/styles.css" />
-  </head>
-  <body class="unbranded">
-    <main class="shell">
-      <header class="masthead">
-        <div class="mode-toggle" id="brand-toggle" role="radiogroup" aria-label="Branding">
-          <button type="button" class="mode-option" data-brand="branded" role="radio" aria-checked="false">Il Tiratore branded</button>
-          <button type="button" class="mode-option selected" data-brand="unbranded" role="radio" aria-checked="true">Unbranded</button>
-        </div>
-        <p class="eyebrow" id="masthead-eyebrow">Philosophy layer</p>
-        <p class="intro">A real opening decision becomes a reviewable interpretation before a Story is ready to publish.</p>
-      </header>
-
-      <section id="setup" class="step" aria-labelledby="setup-title">
-        <div class="step-heading"><span>01</span><h2 id="setup-title">Verified context</h2></div>
-        <div class="mode-toggle" id="mode-toggle" role="radiogroup" aria-label="Execution mode">
-          <button type="button" class="mode-option selected" data-mode="demo" role="radio" aria-checked="true">Demo · static data</button>
-          <button type="button" class="mode-option" data-mode="live" role="radio" aria-checked="false">Live · agentic</button>
-        </div>
-        <p id="mode-description" class="mode-description">Demo mode runs the Philosophy layer locally against the values below. No weather, calendar or OpenAI calls are made.</p>
-        <div class="context-grid">
-          <label>Day<select id="day"><option>Saturday</option><option>Sunday</option><option>Friday</option></select></label>
-          <label>Temperature <input id="temperature" type="number" value="23" min="-10" max="45" /> <small>°C</small></label>
-          <label>Forecast <input id="forecast" type="number" value="24" min="-10" max="45" /> <small>°C</small></label>
-          <label>Blocking calendar events <input id="events" type="number" value="0" min="0" max="20" /></label>
-          <label>Opening time <input id="opens-at" type="time" value="13:30" /></label>
-          <label>Closing time <input id="closes-at" type="time" value="18:00" /></label>
-        </div>
-        <label class="products">Weekend flavours <input id="products" value="Aperol Spritz Sorbet, Limoncello Spritz Sorbet" /></label>
-        <div class="upload-row">
-          <label class="file-label" for="photo">Quay photo <input id="photo" type="file" accept="image/*" /></label>
-          <div id="photo-status" class="photo-status">Upload the photo you took of the cart and quay.</div>
-          <button id="prepare" class="primary" type="button">Prepare review</button>
-        </div>
-        <p id="opening-result" class="opening-result" aria-live="polite"></p>
-      </section>
-
-      <section id="review" class="review hidden" aria-live="polite" aria-labelledby="review-title">
-        <div class="step-heading"><span>02</span><h2 id="review-title">First human gate</h2></div>
-        <div class="interpretation-layout">
-          <article class="interpretation">
-            <p class="eyebrow">Philosophy · v<span id="philosophy-version"></span> · <span id="mode-badge"></span></p>
-            <h3 id="observation"></h3>
-            <p id="relevance"></p>
-            <dl>
-              <dt>Semantic direction</dt><dd id="semantic-direction"></dd>
-              <dt>Rejected frames</dt><dd id="rejected-frames"></dd>
-              <dt>Avoid</dt><dd id="avoid"></dd>
-            </dl>
-          </article>
-          <article class="checks">
-            <p class="eyebrow">Skill · v<span id="skill-version"></span> · Execution checks</p>
-            <div id="validation"></div>
-            <div id="conformance"></div>
-          </article>
-        </div>
-        <p class="eyebrow">Creative directions · bounded by the Philosophy above</p>
-        <div class="directions" id="directions" role="radiogroup" aria-label="Creative directions"></div>
-        <div class="review-layout">
-          <div class="story-frame" aria-label="Instagram Story preview">
-            <img id="story-image" alt="Uploaded cart and quay photo preview" />
-            <div class="story-overlay"></div>
-            <div class="story-copy"><p id="story-caption"></p><p class="story-credit hidden" id="story-credit"></p></div>
-          </div>
-          <aside class="decision-panel">
-            <p class="eyebrow">Approve the pair</p>
-            <h3>Same artefact. Same reason.</h3>
-            <p>The approval binds this selected Story to the interpretation shown above.</p>
-            <div class="actions">
-              <button id="iterate" type="button">Iterate</button>
-              <button id="cancel" type="button">Cancel</button>
-              <button id="publish" class="primary" type="button">Publish</button>
-            </div>
-            <p id="decision-result" class="decision-result"></p>
-            <div id="approval-record" class="approval-record hidden">
-              <p class="eyebrow">approval_token = sign(canonical_hash(approval_manifest))</p>
-              <dl>
-                <dt>canonical_hash</dt><dd id="approval-hash"></dd>
-                <dt>approval_token</dt><dd id="approval-token"></dd>
-                <dt>signing key</dt><dd id="approval-key-note"></dd>
-              </dl>
-              <button id="verify-token" type="button">Verify token</button>
-              <p id="verify-result" class="verify-result"></p>
-            </div>
-          </aside>
-        </div>
-      </section>
-    </main>
-    <script type="module" src="src/app.js"></script>
-  </body>
-</html>
+<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Philosophy Layer reference</title><link rel="stylesheet" href="src/styles.css" /></head>
+<body><header class="masthead"><p class="eyebrow">Reference implementation</p><h1>The Philosophy Layer</h1><p>One action, two views: the Story decision on the left and the accountable system that produced it on the right.</p></header>
+<main class="workspace">
+  <section class="experience" aria-label="End-user review"><div class="pane-title"><span>01</span><div><p class="eyebrow">End-user view</p><h2>Story review</h2></div></div>
+    <section id="setup" class="card"><h3>Verified context</h3><div class="mode-toggle" id="mode-toggle" role="radiogroup"><button class="mode-option selected" data-mode="demo">Demo scenario</button><button class="mode-option" data-mode="live">Live sources</button></div><p id="mode-description" class="muted">Demo keeps its provenance visible: these are supplied scenario values, not live facts.</p>
+    <div class="context-grid"><label>Day<select id="day"><option>Saturday</option><option>Sunday</option><option>Friday</option></select></label><label>Temperature<input id="temperature" type="number" value="23" /> °C</label><label>Forecast<input id="forecast" type="number" value="24" /> °C</label><label>Blocking events<input id="events" type="number" value="0" min="0" /></label><label>Recent posts<input id="recent-posts" type="number" value="0" min="0" max="5" /></label><label>Opening<input id="opens-at" type="time" value="13:30" /></label><label>Closing<input id="closes-at" type="time" value="18:00" /></label></div>
+    <label>Available flavours<input id="products" value="Aperol Spritz Sorbet, Limoncello Spritz Sorbet" /></label><label class="file-label">Story photo <input id="photo" type="file" accept="image/*" /></label><button id="prepare" class="primary">Prepare interpretation</button><p id="status" class="status"></p></section>
+    <section id="interpretation-stage" class="card hidden"><div class="stage-head"><div><p class="eyebrow">Human gate one</p><h3>Approve the interpretation</h3></div><span id="version-badge" class="badge"></span></div><h2 id="observation"></h2><p id="relevance"></p><dl><dt>Semantic direction</dt><dd id="semantic-direction"></dd><dt>Evidence</dt><dd id="evidence"></dd><dt>Rejected frames</dt><dd id="rejected-frames"></dd><dt>Avoid</dt><dd id="avoid"></dd></dl><div class="actions"><button id="stop" type="button">Choose silence</button><button id="approve-interpretation" class="primary">Approve & generate directions</button></div></section>
+    <section id="artefact-stage" class="card hidden"><div class="stage-head"><div><p class="eyebrow">Human gate two</p><h3>Approve artefact and reason</h3></div><span id="artefact-badge" class="badge"></span></div><div id="directions" class="directions"></div><div class="story-frame"><img id="story-image" alt="Story preview" /><div class="story-overlay"></div><p id="story-caption"></p></div><div id="checks" class="checks"></div><div class="actions"><button id="cancel" type="button">Cancel</button><button id="approve-artefact" class="primary">Approve for publication</button></div><div id="approval-record" class="hidden"><p class="eyebrow">Exact-state approval record</p><dl><dt>canonical hash</dt><dd id="approval-hash"></dd><dt>approval token</dt><dd id="approval-token"></dd><dt>media hash</dt><dd id="media-hash"></dd></dl><button id="verify-token">Verify approval</button><p id="verify-result" class="status"></p></div></section>
+  </section>
+  <aside class="hood" aria-label="Under the hood"><div class="pane-title"><span>02</span><div><p class="eyebrow">Under the hood</p><h2>Decision trace</h2></div></div><p class="muted">This is the server’s work as your review advances. Nothing below is a hidden rationale.</p><div id="architecture" class="architecture"></div><ol id="trace" class="trace"></ol></aside>
+</main><script type="module" src="src/app.js"></script></body></html>
