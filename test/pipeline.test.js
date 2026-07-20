@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { assessOpeningDecision, conformanceCheck, createDirections, interpret, validateArtefact } from "../src/pipeline.js";
 import { config } from "../server/config.js";
 
-const liveEnvKeys = ["OPENAI_API_KEY", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN", "WEATHER_LATITUDE", "WEATHER_LONGITUDE"];
-const liveCredentials = { OPENAI_API_KEY: "key", GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret", GOOGLE_REFRESH_TOKEN: "token" };
+const liveEnvKeys = ["OPENAI_API_KEY", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN", "APPROVAL_SIGNING_KEY", "WEATHER_LATITUDE", "WEATHER_LONGITUDE"];
+const liveCredentials = { OPENAI_API_KEY: "key", GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret", GOOGLE_REFRESH_TOKEN: "token", APPROVAL_SIGNING_KEY: "production-test-signing-key" };
 
 function withEnv(overrides, fn) {
   const original = Object.fromEntries(liveEnvKeys.map((key) => [key, process.env[key]]));
@@ -85,6 +85,12 @@ test("config flags absent weather coordinates as missing for live mode", () => {
   const settings = withEnv(liveCredentials, () => config());
   assert.equal(settings.liveReady, false);
   assert.ok(settings.missingLive.includes("WEATHER_LATITUDE/WEATHER_LONGITUDE"));
+});
+
+test("config never permits live mode with the demo approval key", () => {
+  const settings = withEnv({ ...liveCredentials, APPROVAL_SIGNING_KEY: "", WEATHER_LATITUDE: "52.37", WEATHER_LONGITUDE: "4.89" }, () => config());
+  assert.equal(settings.liveReady, false);
+  assert.ok(settings.missingLive.includes("APPROVAL_SIGNING_KEY"));
 });
 
 test("config is live-ready once credentials and numeric coordinates are set", () => {

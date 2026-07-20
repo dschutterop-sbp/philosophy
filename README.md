@@ -1,6 +1,17 @@
 # The Philosophy Layer — reference implementation
 
+[![Code license: Apache-2.0](https://img.shields.io/badge/code-Apache--2.0-blue.svg)](LICENSE)
+[![Paper license: CC BY 4.0](https://img.shields.io/badge/paper-CC%20BY%204.0-lightgrey.svg)](PAPER-LICENSE.md)
+
 This is an inspectable implementation of the paper’s decision chain. It is deliberately a review system, not a publisher: the final action is **Approve for publication**, which produces a short-lived, exact-state approval record for a separate publisher to verify.
+
+## License and citation
+
+The reference implementation is licensed under [Apache License 2.0](LICENSE).
+The whitepaper PDF and its publication source are licensed under
+[CC BY 4.0](PAPER-LICENSE.md). See [CITATION.cff](CITATION.cff) for software
+and paper citation metadata. See [PUBLICATION-CHECKLIST.md](PUBLICATION-CHECKLIST.md)
+before making a repository public.
 
 ## What the interface demonstrates
 
@@ -34,7 +45,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Open [http://localhost:8080](http://localhost:8080). Demo mode requires no credentials. Live mode reads weather and calendar data and takes opening hours/products only from deployment configuration, never from the browser.
+Open [http://localhost:8080](http://localhost:8080). Demo mode requires no credentials. Live mode reads weather and calendar data and takes opening hours/products only from deployment configuration, never from the browser. Live mode refuses to start without a non-demo `APPROVAL_SIGNING_KEY`.
 
 ## Live configuration
 

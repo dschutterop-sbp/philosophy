@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use The Philosophy Layer, please cite it as below."
+title: "The Philosophy Layer"
+type: software
+version: 0.1.0
+date-released: 2026-07-20
+authors:
+  - family-names: Schutterop
+    given-names: Daniel
+license: Apache-2.0
+preferred-citation:
+  type: article
+  title: "The Philosophy Layer: From Guardrails to Judgement in AI-Assisted Systems"
+  authors:
+    - family-names: Schutterop
+      given-names: Daniel
+  date-released: 2026-07-20
+  license: CC-BY-4.0
