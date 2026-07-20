@@ -11,6 +11,8 @@ The paper is maintained as the repository’s canonical, editable source at
 [paper/philosophy_layer.md](paper/philosophy_layer.md). It is intentionally
 versioned alongside this reference implementation so that interface evidence
 and the paper’s decision-trace claims can evolve together.
+The running reference implementation links each review stage and decision-trace
+event to its relevant paper section.
 
 ## License and citation
 

@@ -13,7 +13,8 @@ const settings = config();
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
 const indexFile = resolve(repoRoot, "index.html");
 const srcDir = resolve(repoRoot, "src") + sep;
-const contentTypes = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8" };
+const paperDir = resolve(repoRoot, "paper") + sep;
+const contentTypes = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".md": "text/markdown; charset=utf-8" };
 const store = new DraftStore();
 const audit = new AuditLog(new URL("../data/audit.jsonl", import.meta.url));
 await audit.init();
@@ -23,7 +24,7 @@ class HttpError extends Error { constructor(status, message) { super(message); t
 const mime = (path) => contentTypes[Object.keys(contentTypes).find((ext) => path.endsWith(ext))] || "application/octet-stream";
 async function body(request) { let raw = ""; for await (const chunk of request) { raw += chunk; if (raw.length > 7_000_000) throw new Error("Request body exceeds 7MB."); } return JSON.parse(raw || "{}"); }
 function send(response, status, value) { response.writeHead(status, { "content-type": "application/json", "cache-control": "no-store" }); response.end(JSON.stringify(value)); }
-function publicFile(pathname) { try { const target = resolve(repoRoot, decodeURIComponent(pathname)); return target === indexFile || target.startsWith(srcDir) ? target : null; } catch { return null; } }
+function publicFile(pathname) { try { const target = resolve(repoRoot, decodeURIComponent(pathname)); return target === indexFile || target.startsWith(srcDir) || target.startsWith(paperDir) ? target : null; } catch { return null; } }
 function actor() { return settings.reviewer; } // Production: replace this adapter with authenticated identity and role claims.
 function assertPublisher() { if (actor().role !== "publisher") throw new HttpError(403, "Current reviewer is not authorised to approve publication."); }
 function publicDraft(draft) { return { draftId: draft.id, mode: draft.mode, createdAt: draft.createdAt, state: draft.state, context: draft.context, media: { filename: draft.media.filename, hash: draft.media.hash }, opening: draft.opening, interpretation: draft.interpretation, interpretationAttempt: draft.interpretationAttempt || 1, directions: draft.directions, versions: draft.versions, actor: actor() }; }

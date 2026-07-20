@@ -1,3 +1,5 @@
+import { referenceFor } from "./paper-references.js";
+
 const $ = (selector) => document.querySelector(selector);
 let mode = "demo", draft = null, selected = null, photo = null, approval = null;
 const placeholder = "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='1080' height='1920'><rect width='100%' height='100%' fill='#26352f'/><text x='540' y='930' text-anchor='middle' fill='#e6dfcf' font-family='serif' font-size='54'>IL TIRATORE</text><text x='540' y='1000' text-anchor='middle' fill='#e6dfcf' font-family='sans-serif' font-size='25'>REFERENCE STORY MEDIA</text></svg>");
@@ -13,6 +15,29 @@ function safePayload(value) {
   return value;
 }
 
+const traceReference = {
+  "API request": "audit", "Server state": "audit", "API rejected": "audit",
+  "Mode selected": "context", "Media staged": "approval", "Interpretation ready": "interpretation",
+  "Directions ready": "creativeDirection", "Context builder": "context", "Silence decision": "silence",
+  "Human gate one": "humanGate", "Human gate two": "humanGate", "Direction selected": "creativeDirection",
+  "Approval token issued": "approval", "Token verification": "approval", "Reference ready": "audit",
+};
+function sourceLink(key, className = "source-link") {
+  const reference = referenceFor(key);
+  const link = document.createElement("a");
+  link.className = className;
+  link.href = reference.href;
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = reference.label;
+  link.title = reference.description;
+  link.setAttribute("aria-label", `${reference.label}: ${reference.description}`);
+  return link;
+}
+function attachSourceReference(selector, key) {
+  const container = $(selector);
+  if (container) container.append(sourceLink(key, "card-source-link"));
+}
 function trace(title, detail, kind = "system", payload) {
   const item = document.createElement("li"); item.className = `trace-event ${kind}`;
   const toggle = document.createElement("button"); toggle.type = "button"; toggle.className = "trace-toggle"; toggle.setAttribute("aria-expanded", "false");
@@ -20,7 +45,7 @@ function trace(title, detail, kind = "system", payload) {
   const description = document.createElement("span"); description.textContent = detail;
   const panel = document.createElement("pre"); panel.className = "trace-payload"; panel.hidden = true; panel.textContent = JSON.stringify(safePayload(payload ?? { event: title, detail }), null, 2);
   toggle.append(heading, description); toggle.addEventListener("click", () => { const expanded = toggle.getAttribute("aria-expanded") === "true"; toggle.setAttribute("aria-expanded", String(!expanded)); panel.hidden = expanded; });
-  item.append(toggle, panel); $("#trace").prepend(item);
+  item.append(toggle, sourceLink(traceReference[title] || "audit", "trace-source-link"), panel); $("#trace").prepend(item);
 }
 async function api(url, payload = {}) {
   trace("API request", `POST ${url}`, "api", { request: { method: "POST", url, headers: { "content-type": "application/json" }, body: payload } });
@@ -45,5 +70,17 @@ $("#stop").onclick = () => withBusy($("#stop"), "Recording…", async () => { tr
 $("#cancel").onclick = () => withBusy($("#cancel"), "Cancelling…", async () => { try { const request = { reason: "Reviewer cancelled artefact." }; draft = await api(`/api/drafts/${draft.draftId}/cancel`, request); $("#status").textContent = "Cancellation recorded."; trace("Human gate two", "Artefact cancelled; no approval token exists.", "human", { decision: request, draftId: draft.draftId }); } catch (error) { $("#status").textContent = error.message; } });
 $("#approve-artefact").onclick = () => withBusy($("#approve-artefact"), "Approving…", async () => { try { const request = { directionId: selected.id }; approval = await api(`/api/drafts/${draft.draftId}/artefact/approve`, request); $("#approval-record").classList.remove("hidden"); $("#approval-hash").textContent = approval.canonicalHash; $("#approval-token").textContent = approval.approvalToken; $("#media-hash").textContent = approval.approvalManifest.mediaHash; trace("Approval token issued", "Server signed its stored interpretation, media, text, version and reviewer state.", "human", { signing: { algorithm: "HMAC-SHA256(canonical_hash(manifest))", approvalManifest: approval.approvalManifest, canonicalHash: approval.canonicalHash, approvalToken: approval.approvalToken } }); } catch (error) { $("#status").textContent = error.message; } });
 $("#verify-token").onclick = () => withBusy($("#verify-token"), "Verifying…", async () => { try { const request = { approvalManifest: approval.approvalManifest, approvalToken: approval.approvalToken }; const result = await api("/api/verify", request); $("#verify-result").textContent = result.valid ? "Verified: exact stored state matches the token." : result.expired ? "Not verified: approval has expired." : "Verification failed."; trace("Token verification", result.valid ? "HMAC matches canonical manifest." : result.expired ? "Signature matches but approval has expired." : "Signature mismatch.", result.valid ? "system" : "error", { verification: { request, result } }); } catch (error) { $("#verify-result").textContent = error.message; } });
-$("#architecture").innerHTML = ["Context → facts + provenance", "Philosophy → interpretation", "Human gate → approve relevance", "Creative Skill → candidates", "Validation + conformance", "Human gate → exact-state approval", "Audit → hash-chained events"].map((item) => `<div>${item}</div>`).join("");
+const architectureStages = [
+  ["Context → facts + provenance", "context"], ["Philosophy → interpretation", "interpretation"],
+  ["Human gate → approve relevance", "humanGate"], ["Creative Skill → candidates", "creativeDirection"],
+  ["Validation + conformance", "conformance"], ["Human gate → exact-state approval", "approval"],
+  ["Audit → hash-chained events", "audit"],
+];
+$("#architecture").innerHTML = architectureStages.map(([label, key]) => {
+  const reference = referenceFor(key);
+  return `<div>${label}<a href="${reference.href}" target="_blank" rel="noopener" title="${reference.description}">${reference.label}</a></div>`;
+}).join("");
+attachSourceReference("#setup", "context");
+attachSourceReference("#interpretation-stage", "interpretation");
+attachSourceReference("#artefact-stage", "conformance");
 $("#story-image").src = placeholder; setMode("demo"); trace("Reference ready", "Choose a mode and prepare a decision.", "system", { reference: "Philosophy Layer", supportedStages: ["context", "interpretation", "directions", "validation", "conformance", "approval", "audit"] });
