@@ -46,12 +46,15 @@ Given this factual context:
  "evidence_refs": [
    "operations:cart_state:20260719T140000+0200",
    "weather:observation:20260719T140000+0200",
-   "inventory:snapshot:20260719T135500+0200"
+   "inventory:snapshot:20260719T135500+0200",
+   "product_catalog:alcohol_classification:20260719T135500+0200"
  ]
 }
 ```
 
-a fully compliant result might be:
+`contains_alcohol` is a deterministically derived product attribute, supported here by the product catalogue rather than inferred by the Philosophy Interpreter. The distinction is between derived facts with traceable evidence and normative inferences about what those facts mean.
+
+A fully compliant result might be:
 
 > Sunny today.
 > Come and enjoy a refreshing sorbet.
@@ -95,7 +98,9 @@ This position paper makes three architectural contributions:
 
 # 2. The Philosophy Layer
 
-**The Philosophy layer is a versioned decision layer that transforms verified context into an explicit interpretation of relevance, intent and appropriate action before execution begins.**
+**The Philosophy layer is a versioned decision layer that transforms verified context into an explicit interpretation of relevance, intent and appropriate action before execution begins.**[^philosophy-name]
+
+[^philosophy-name]: The term *Philosophy* is used here in the organisational sense of a stable normative account of purpose, identity and decision principles. It is not a claim to philosophical theory and is not synonymous with a model constitution.
 
 It contains the stable organisational knowledge needed to decide what factual context *means* before an artefact is generated:
 
@@ -113,7 +118,13 @@ Its first output is not a caption or a creative concept. It is a machine-readabl
 
 ```json
 {
- "observation": "It is a sunny Sunday afternoon at 25°C and the cart is open.",
+ "verified_observations": {
+   "local_datetime": "2026-07-19T14:00:00+02:00",
+   "day_of_week": "Sunday",
+   "weather_condition": "sunny",
+   "temperature_c": 25,
+   "cart_state": "open"
+ },
  "context_evidence": [
    "operations:cart_state:20260719T140000+0200",
    "weather:observation:20260719T140000+0200",
@@ -149,7 +160,28 @@ escalate
 
 This prevents the interpreter from manufacturing certainty when context is incomplete or when the decision falls outside its delegated authority. `missing_evidence` and `unresolved_questions` are preferable to a superficially precise confidence score because they identify what would have to change before the pipeline can continue.
 
-Unlike `recommendation`, whose baseline set the architecture fixes above, `decision_class` is defined per deployment: each organisation enumerates the situation types it treats as distinct (here, `audience_moment_extension`). That enumeration is itself a governed, normative choice, not a fixed part of the architecture (§5.4). Because the taxonomy is authored rather than given, its own most likely failure is *under-enumeration*: a situation type the organisation never named is silently forced into the nearest existing class, reproducing the hidden-judgement problem the layer exists to expose. Taxonomy completeness therefore needs an owner and periodic review in the same way silence does (§6), and is treated as an anti-pattern where it drifts (§9).
+These fields have explicit lifecycle semantics. `develop_direction` is valid only when no item remains marked as blocking. A non-blocking uncertainty may remain visible, but it must be labelled as such and may not support a factual claim or determine admissibility. `request_more_context` identifies evidence that must be supplied before interpretation resumes. `defer` identifies a condition or time at which the decision should be reconsidered. `escalate` identifies the authority or normative question outside the interpreter's delegation. `do_not_publish` requires sufficient evidence to justify silence; lack of evidence alone is not evidence that silence is appropriate. Items are typed rather than free-form strings, for example:
+
+```json
+{
+ "missing_evidence": [
+   {
+     "item": "Current product availability has not been verified.",
+     "status": "blocking",
+     "required_source": "inventory_snapshot"
+   }
+ ],
+ "unresolved_questions": [
+   {
+     "question": "Does this communication fall within delegated authority?",
+     "status": "blocking",
+     "resolution_route": "publisher_review"
+   }
+ ]
+}
+```
+
+Unlike `recommendation`, whose baseline set the architecture fixes above, `decision_class` is defined per deployment: each organisation enumerates the situation types it treats as distinct (here, `audience_moment_extension`). That enumeration is itself a governed, normative choice, not a fixed part of the architecture (§5.4). Because the taxonomy is authored rather than given, its own most likely failure is *under-enumeration*. When no class fits without semantic distortion, the interpreter must return `decision_class: "unclassified"` with `recommendation: "escalate"`. It may not silently force the situation into the nearest existing class. Repeated unclassified outcomes then become evidence for taxonomy review rather than invisible classification error (§5.6, §9).
 
 Before Creative Direction begins, the interpretation passes through an **early rejection checkpoint**. A human reviewer, deterministic policy or delegated model guardrail may reject it, request revision or permit the pipeline to continue. Continuation is not publication approval: the checkpoint exists to stop a faulty premise before downstream generation consumes time, tokens or review effort. Creative Direction can then explore one or more concrete expressions within the accepted semantic boundaries. The Skill Executor converts the selected direction into an operationally valid artefact.
 
@@ -364,7 +396,7 @@ The decision policy is **negative-first and non-compensatory**:
 
 1. A violation of safety, law, verified context, a hard Skill constraint or a Philosophy invariant is a hard block. No positive-fit score and no ordinary prompt-level instruction can cancel it.
 2. A human rejection is authoritative for the reviewed state and stops the affected interpretation, direction or artefact. A later human may reverse that decision only through a new, role-authorised and audited disposition, never by silently lowering its weight.
-3. Machine-detected *soft* violations use policy-defined ordinal weights; genuinely critical violations are not weighted here at all, because they fall under the hard blocks of point 1. A reference policy may assign `major=30`, `moderate=10` and `minor=3`: a total of 30 or more rejects the candidate back to the relevant loop; 10-29 requires explicit human disposition; below 10 remains a visible warning. The values are deployment policy, not empirical probabilities.
+3. Machine-detected *soft* violations use policy-defined ordinal weights; genuinely critical violations are not weighted here at all, because they fall under the hard blocks of point 1. A reference policy may assign `major=30`, `moderate=10` and `minor=3`: a total of 30 or more rejects the candidate back to the relevant loop; 10-29 requires explicit human disposition; below 10 remains a visible warning. The values are deployment policy, not empirical probabilities. A deployment should begin with ordinal defaults, calibrate thresholds against an adjudicated historical corpus, choose them according to the relative cost of false negatives and false positives, then version the resulting policy and replay the regression corpus after every change. Hard blocks remain outside this calibration.
 4. An `indeterminate` finding never counts as a pass. It routes the criterion to human review or fails closed where the deployment risk requires it.
 5. Failure to meet the mandatory `positive_fit_condition`, or an indeterminate result on it, blocks the candidate until revision establishes the required fit. Additional positive fit may rank candidates, but cannot compensate for a confirmed negative criterion.
 
@@ -507,6 +539,25 @@ Strategy is a separately versioned representation of what the organisation is *c
 
 Strategy enters the pipeline as a second input to the Philosophy Interpreter, alongside the Philosophy and verified context. It does not authorise publication. Its effect is to rank interpretations within the admissible space already defined by safety, law, verified facts, hard Skill constraints and Philosophy invariants. It can raise or lower the threshold for `develop_direction` versus `do_not_publish`, and it can mark certain decision classes as currently in or out of focus. A summer launch period might make product-availability moments more worth communicating; a quiet operating period might raise the silence threshold. Neither changes who the organisation is.
 
+The modulation should be observable in the interpretation record. Given the same verified context and Philosophy, two Strategy versions may produce different recommendations without changing the admissible semantic frame:
+
+```text
+Verified context:   Cart open on a warm Sunday; two verified products available.
+Philosophy boundary: If communicated, treat the product as an extension of an afternoon already underway.
+
+Strategy 2026-summer-launch:
+  priority_decision_classes = [audience_moment_extension, product_availability]
+  communication_threshold = normal
+  → recommendation = develop_direction
+
+Strategy 2026-quiet-operation:
+  priority_decision_classes = [exceptional_event]
+  communication_threshold = high
+  → recommendation = do_not_publish
+```
+
+The second Strategy does not decide that heat-relief language has become acceptable, and the first does not require publication. Each changes the current relevance threshold while leaving Philosophy invariants intact.
+
 This distinction resolves the apparent conflict between Strategy and Philosophy. Strategy outranks Philosophy *defaults* when ranking otherwise valid options, but it does not outrank Philosophy *invariants or explicit prohibitions*. A specific, authorised and time-bounded objective can displace a standing preference; it cannot redefine the organisation's hard identity boundary.
 
 Keeping Strategy separate from Philosophy prevents §9's "Philosophy as accumulated habit" failure in its most common form: a temporary campaign preference hardening into a permanent stated value simply because nobody removed it when the period ended. A Strategy version expires by design; a Philosophy version remains active until it is superseded or withdrawn.
@@ -517,9 +568,11 @@ The Philosophy layer contains normative organisational judgement, so changing it
 
 Every Philosophy should have an explicit owner, a documented approval path and provenance for each change. Production feedback may generate a proposed amendment, but it should not silently rewrite the Philosophy. Human decisions are evidence for principle formation, not automatically correct principles. The same decisions can still be authoritative regression labels after review and adjudication, as described in §7.
 
+Governance scales by collapsing roles, not by eliminating records. In a small or owner-operated organisation, one person may legitimately act as proposer, owner and approver, including through declared self-approval. The change must still record its rationale, version, effective date and the historical scenarios replayed against it. Where two participants disagree, a named owner has final authority or the proposed change remains unresolved; the active Philosophy cannot be changed through an implicit last-edit-wins process. This is the minimal viable governance model for the Il Tiratore reference domain.
+
 Stable organisational principles belong in the Philosophy. Temporary campaign objectives, local operating targets and short-lived preferences belong in context or a separately versioned Strategy layer. This prevents tactical choices from quietly becoming institutional values.
 
-The `decision_class` taxonomy is governed on the same terms. Because it is authored per deployment, it needs a named owner and a review path for adding, retiring or merging classes; an unreviewed taxonomy silently decides which situations the system is even capable of distinguishing.
+The `decision_class` taxonomy is governed on the same terms. Because it is authored per deployment, it needs a named owner and a review path for adding, retiring or merging classes; an unreviewed taxonomy silently decides which situations the system is even capable of distinguishing. Review is triggered by repeated `unclassified` outcomes, repeated human reassignment, low reviewer agreement, persistent overlap between classes, one class absorbing semantically diverse scenarios, a material Philosophy or Strategy change or expansion into a new domain. A scheduled review remains a backstop, not the primary trigger.
 
 In larger organisations, access should be role-based. Material changes should record who proposed them, who approved them, the rationale and the historical scenarios used to test the new version. Conflicts between teams should be resolved through explicit ownership, documented adjudication and the constraint and preference model rather than by whichever prompt was edited last.
 
@@ -530,6 +583,8 @@ The reference architecture fails closed. No interpretation accepted for continua
 The pipeline must stop and record a typed failure when:
 
 * required context evidence is missing or fails verification;
+* `develop_direction` is returned while any `missing_evidence` or `unresolved_questions` item remains blocking;
+* `do_not_publish` is returned without sufficient evidence to justify the silence decision;
 * the interpretation does not conform to its schema;
 * the early checkpoint rejects the interpretation or leaves its disposition unresolved;
 * the interpreter returns `request_more_context`, `defer` or `escalate`;
@@ -611,6 +666,12 @@ Only a label attached to the relevant component becomes authoritative regression
 3. **Prohibited directions provide the narrowest automated signal.** "Does this interpretation introduce urgency?" is more tractable than "Is this interpretation good?" Negative checks can therefore carry more automated weight in testing and runtime conformance (§5.2). Positive quality remains primarily a human judgement until the claim has stronger empirical support.
 
 Additional test dimensions include consistency across similar scenarios, stability under small context perturbations, reviewer agreement and replay of the historical corpus after every Philosophy version bump to detect silent behaviour shifts.
+
+### Reviewer Qualification and Calibration
+
+Reviewer selection is part of the experimental design rather than an incidental staffing choice. Authoritative reviewers need two distinct competencies. **Domain competence** is the ability to judge the organisation, audience and normative setting, such as Il Tiratore's identity or the employee relationship in the corporate vignette. **Protocol competence** is the ability to distinguish context, interpretation, direction, execution, validation, conformance and approval faults. A reviewer who has only one competence should not be treated as authoritative for both judgements.
+
+Before reviewing experimental cases, reviewers should complete a calibration set with adjudicated examples and documented reason codes. The outcome study should use domain-qualified reviewers because it asks whether the final result is appropriate. The review-process study and fault-localisation task should use reviewers who are qualified in both the domain and the protocol, or a paired review in which those competencies are split between reviewers. Reviewer role, relevant experience, calibration results and post-calibration agreement must be reported so that reviewer variance is not mistaken for an architectural effect.
 
 ## 7.1 Ablation Evaluation
 
@@ -732,7 +793,14 @@ The forward-specification role survives this caveat: downstream stages can still
 
 # 8. Beyond Social Media: A Hypothesis
 
-Two contexts in this paper are worked examples rather than hypotheses: outbound social content (§2.1) and the internal-versus-external distinction in corporate communication (§2.2). The pattern plausibly extends further, wherever a system must choose among several valid actions: customer support, where procedural accuracy competes with generous resolution; incident communication, where technical detail competes with acknowledgement or silence until facts are verified; scheduling, where focus time competes with responsiveness; recommendations, where several options satisfy the same criteria but embody different trade-offs.
+Two contexts in this paper are worked examples rather than hypotheses: outbound social content (§2.1) and the internal-versus-external distinction in corporate communication (§2.2). The pattern plausibly extends further, wherever a system must choose among several valid actions. The valid-versus-appropriate gap remains, but the context boundary and evaluation problem change by domain:
+
+| Domain | Appropriateness question | Context-specific challenge | Candidate evaluation target |
+|---|---|---|---|
+| Customer support | When should procedural correctness yield to discretionary resolution or escalation? | Third-party text is authentic evidence of what was received but may be adversarial or manipulative. | Resolution quality, escalation accuracy and resistance to instruction-like customer content. |
+| Incident communication | When should the system explain, acknowledge, defer or remain silent? | Facts are incomplete, time-sensitive and may change after interpretation. | Premature-claim rate, harmful delay, update correctness and renewed approval after material change. |
+| Scheduling | When should responsiveness yield to protected focus, hierarchy or social obligation? | Relevant norms and relationships may be unobserved or only weakly represented in context. | Override frequency, conflict rate, user regret and sensitivity to missing relational evidence. |
+| Recommendations | Which admissible option best fits the person's priorities? | Preferences may be latent, conflicting or inferred from sparse behaviour. | Preference fit, correction depth, diversity of acceptable choices and handling of unresolved trade-offs. |
 
 These are hypotheses, not results. The design cases in this paper concern two communication contexts within one organisation. The generalisation argument is structural: the valid-versus-appropriate gap exists in all of these settings. Whether the same architecture closes that gap elsewhere remains unverified. Whether its cost profile survives high-frequency domains — and whether the verified-context boundary holds where much of the context is adversarial third-party text (§7.2) — are separate open questions of equal importance. Those are the obvious next experiments.
 
@@ -744,7 +812,7 @@ These are hypotheses, not results. The design cases in this paper concern two co
 * **Philosophy as tone of voice.** Tone is one component. It decides nothing about relevance or whether to communicate at all.
 * **Philosophy as permission to invent.** Interpretation explains why facts matter. It may not create facts.
 * **Philosophy as accumulated habit.** Repeated historical behaviour is evidence, not proof that the behaviour should become a principle.
-* **Unowned decision-class taxonomy.** A `decision_class` set that grows by accretion, or forces new situations into the nearest existing class, silently narrows what the system can distinguish. The taxonomy needs an owner and periodic review (§5.6).
+* **Unowned decision-class taxonomy.** A `decision_class` set that grows by accretion, or forces new situations into the nearest existing class, silently narrows what the system can distinguish. The taxonomy needs an owner, an explicit `unclassified` path and event-triggered review (§5.6).
 * **Hidden interpretation.** If only the final artefact is visible, reviewers cannot distinguish poor reasoning from poor execution.
 * **Interpreted situation, divergent artefact.** If nothing verifies that the executor stayed within the interpretation's boundaries, the pipeline may submit an artefact inconsistent with the rationale presented to the reviewer. Semantic Conformance (§5.2) exists to close this gap. A pipeline without it has moved hidden judgement one stage downstream.
 * **Mandatory output.** A Philosophy that cannot recommend silence is incomplete.
