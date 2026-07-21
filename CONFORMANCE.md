@@ -1,12 +1,11 @@
 # CONFORMANCE.md — paper ⇄ implementation reconciliation
 
 Binds *The Philosophy Layer* (paper-spec-v1.0) to the reference implementation
-at commit `5ba0937` — the current freeze point. Re-stamp this hash on the commit
-that lands this matrix together with the `server/`, `src/`, `evaluation/` and
-`governance/` modules it cites (they are working-tree changes on top of
-`5ba0937`, not yet committed). This is the conformance matrix required by paper
-§7.1. It is the authoritative reconciliation surface: [README.md](README.md) and
-[LIMITATIONS.md](LIMITATIONS.md) point here; the paper itself
+at commit `9a9af8bcaacfeca3d47382fb4cb70744e12e8a92` — the current freeze point.
+The `server/`, `src/`, `evaluation/` and `governance/` modules cited below are
+mapped to that committed implementation snapshot. This is the conformance matrix
+required by paper §7.1. It is the authoritative reconciliation surface:
+[README.md](README.md) and [LIMITATIONS.md](LIMITATIONS.md) point here; the paper itself
 ([paper/philosophy_layer.md](paper/philosophy_layer.md)) stays a pure position
 paper and contains none of this.
 
@@ -31,7 +30,8 @@ never averaged into a single number.
 
 - `proven` — construction + replay; trace ref given.
 - `proven*` — proven **only under stated assumptions** (single-process,
-  non-adversarial, v1.0 / commit `5ba0937`). Scope note, not a gap.
+  non-adversarial, v1.0 / commit
+  `9a9af8bcaacfeca3d47382fb4cb70744e12e8a92`). Scope note, not a gap.
 - `honoured` — axis B: the limit is reproduced/exposed, not removed.
 - `scaffolded` — axis E: harness exists and runs on the deterministic reference /
   mock content; the human-subject study is **not run**.
