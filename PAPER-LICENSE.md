@@ -2,7 +2,7 @@
 
 Copyright 2026 Daniel Schutterop
 
-*The Philosophy Layer: From Guardrails to Judgement in AI-Assisted Systems*,
+*The Philosophy Layer: An Accountable and Traceable Architecture for Organisational AI Judgement*,
 including the PDF and its publication source, is licensed under the
 [Creative Commons Attribution 4.0 International License][cc-by].
 
