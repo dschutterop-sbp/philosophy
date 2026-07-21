@@ -24,11 +24,12 @@ export class DraftStore {
 // The event hash chain makes edits or removal in the local JSONL audit file evident.
 // Production deployments should send the same events to an access-controlled append-only sink.
 export class AuditLog {
-  constructor(file) { this.file = file; this.previousHash = "genesis"; }
+  constructor(file) { this.file = file; this.previousHash = "genesis"; this.events = []; }
   async init() {
     try {
       const lines = (await readFile(this.file, "utf8")).trim().split("\n").filter(Boolean);
-      if (lines.length) this.previousHash = JSON.parse(lines.at(-1)).eventHash || "genesis";
+      this.events = lines.map((line) => JSON.parse(line));
+      if (this.events.length) this.previousHash = this.events.at(-1).eventHash || "genesis";
     } catch (error) { if (error.code !== "ENOENT") throw error; }
   }
   async append(event) {
@@ -38,6 +39,10 @@ export class AuditLog {
     const signed = { ...record, eventHash };
     await appendFile(this.file, `${JSON.stringify(signed)}\n`);
     this.previousHash = eventHash;
+    this.events.push(signed);
     return signed;
   }
+  // In-memory view of the chain for metrics, provenance and export. Production should
+  // read these from the access-controlled append-only sink, not process memory.
+  all() { return this.events; }
 }
