@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" viewBox="0 0 680 752" role="img" aria-label="The Philosophy layer pipeline">
+<style>
+text{font-family:'Helvetica Neue',Arial,sans-serif}
+.th{font-weight:500;font-size:14px;fill:#2C2C2A}
+.ts{font-weight:400;font-size:12px;fill:#5F5E5A}
+.box{fill:#FFFFFF;stroke:#B4B2A9;stroke-width:0.5}
+.teal{fill:#E1F5EE;stroke:#0F6E56;stroke-width:1}
+.coral{fill:#FAECE7;stroke:#993C1D;stroke-width:1}
+.teal-th{font-weight:500;font-size:14px;fill:#085041}.teal-ts{font-weight:400;font-size:12px;fill:#0F6E56}
+.coral-th{font-weight:500;font-size:14px;fill:#712B13}.coral-ts{font-weight:400;font-size:12px;fill:#993C1D}
+.arr{stroke:#5F5E5A;stroke-width:1.5;fill:none}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect class="box" x="180" y="50" width="320" height="44" rx="8"/><text class="th" x="340" y="72" text-anchor="middle" dominant-baseline="central">Trigger</text>
+<line class="arr" x1="340" y1="94" x2="340" y2="122" marker-end="url(#a)"/>
+<rect class="box" x="180" y="124" width="320" height="56" rx="8"/><text class="th" x="340" y="144" text-anchor="middle" dominant-baseline="central">Context builder</text><text class="ts" x="340" y="162" text-anchor="middle" dominant-baseline="central">Verified observations, no framing</text>
+<line class="arr" x1="340" y1="180" x2="340" y2="208" marker-end="url(#a)"/>
+<rect class="teal" x="180" y="210" width="320" height="56" rx="8"/><text class="teal-th" x="340" y="230" text-anchor="middle" dominant-baseline="central">Philosophy interpreter</text><text class="teal-ts" x="340" y="248" text-anchor="middle" dominant-baseline="central">Produces typed interpretation</text>
+<line class="arr" x1="340" y1="266" x2="340" y2="294" marker-end="url(#a)"/>
+<rect class="box" x="180" y="296" width="320" height="56" rx="8"/><text class="th" x="340" y="316" text-anchor="middle" dominant-baseline="central">Creative direction</text><text class="ts" x="340" y="334" text-anchor="middle" dominant-baseline="central">One to three bounded candidates</text>
+<line class="arr" x1="340" y1="352" x2="340" y2="380" marker-end="url(#a)"/>
+<rect class="box" x="180" y="382" width="320" height="56" rx="8"/><text class="th" x="340" y="402" text-anchor="middle" dominant-baseline="central">Skill executor</text><text class="ts" x="340" y="420" text-anchor="middle" dominant-baseline="central">Operationally valid artefact</text>
+<line class="arr" x1="340" y1="438" x2="340" y2="466" marker-end="url(#a)"/>
+<rect class="box" x="180" y="468" width="320" height="56" rx="8"/><text class="th" x="340" y="488" text-anchor="middle" dominant-baseline="central">Validation and conformance</text><text class="ts" x="340" y="506" text-anchor="middle" dominant-baseline="central">Format, facts, semantic fit</text>
+<line class="arr" x1="340" y1="524" x2="340" y2="552" marker-end="url(#a)"/>
+<rect class="coral" x="180" y="554" width="320" height="56" rx="8"/><text class="coral-th" x="340" y="574" text-anchor="middle" dominant-baseline="central">Human review</text><text class="coral-ts" x="340" y="592" text-anchor="middle" dominant-baseline="central">Single approval gate</text>
+<line class="arr" x1="340" y1="610" x2="340" y2="638" marker-end="url(#a)"/>
+<rect class="box" x="180" y="640" width="320" height="56" rx="8"/><text class="th" x="340" y="660" text-anchor="middle" dominant-baseline="central">Publication and audit</text><text class="ts" x="340" y="678" text-anchor="middle" dominant-baseline="central">Approved payload, versions logged</text>
+<rect class="teal" x="180" y="716" width="14" height="14" rx="3"/><text class="ts" x="202" y="723" dominant-baseline="central">Persisted interpretation (review target)</text>
+<rect class="coral" x="470" y="716" width="14" height="14" rx="3"/><text class="ts" x="492" y="723" dominant-baseline="central">Single human gate</text>
+</svg>
