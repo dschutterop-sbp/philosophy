@@ -5,6 +5,7 @@ COPY package.json index.html ./
 COPY paper ./paper
 COPY src ./src
 COPY server ./server
+COPY governance ./governance
 RUN mkdir -p /app/data
 
 EXPOSE 8080
