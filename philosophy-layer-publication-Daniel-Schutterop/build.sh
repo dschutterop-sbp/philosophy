@@ -34,6 +34,7 @@ fi
 COMMON=(
   "$SOURCE"
   --standalone
+  --resource-path="$(dirname "$SOURCE")"
   --metadata-file="$METADATA"
   --toc
   --toc-depth=3
@@ -49,8 +50,8 @@ case "$ENGINE" in
       --pdf-engine=typst \
       --template="$ROOT/templates/philosophy-paper.typst" \
       -V mainfont="${MAIN_FONT:-New Computer Modern}" \
-      -V margin:x=25mm \
-      -V margin:y=24mm
+      -V margin.x=25mm \
+      -V margin.y=24mm
     ;;
   xelatex)
     require xelatex
