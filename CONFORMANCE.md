@@ -150,7 +150,7 @@ See [LIMITATIONS.md §2](LIMITATIONS.md) for the two `proven*` rows.
 | Paper claim (§) | Axis | Locus | Status |
 |---|---|---|---|
 | Valid-interpretation-space harness (required/prohibited) (§7) | M | `evaluation/scenarios.json`; `test/evaluation.test.js` | proven (harness) |
-| Human reviewer reason-code schema (§7) | M | interpretation-review outcomes + recorded dismissal reason/role (`server/server.js`, `server/provenance.js`) | proven (schema) |
+| Human reviewer reason-code schema (§7) | M | interpretation-review outcomes + recorded dismissal reason/role (`server/server.js`, `server/provenance.js`) | partial — see deviation **D-1** |
 | Authoritative human regression labels (§7) | E | human-labelled corpus | not-run |
 | LLM judge, versioned + calibrated to human corpus (§7) | E (harness M) | `server/openai.js` (`llm_conformance` path, `OPENAI_CONFORMANCE_MODEL`), `src/pipeline.js#buildConformance`; calibration | scaffolded / calibration not-run |
 | Prohibited-direction checks as narrowest signal (§7) | M | `src/pipeline.js#checksFor` / `validateArtefact` (negative checks) | proven |
@@ -194,3 +194,32 @@ See [LIMITATIONS.md §2](LIMITATIONS.md) for the two `proven*` rows.
 Any deviation from `paper-spec-v1.0`, `interpretation-schema-v1.0` or
 `evaluation-protocol-v1.0` (see `spec-versions.json`) must be recorded here
 before result analysis and reported as a deviation (§7.1), not silently absorbed.
+
+## Recorded deviations
+
+Deviations from the frozen specification, recorded per §7.1 before any result
+analysis. A deviation is a scoped, acknowledged gap — not a silent one.
+
+### D-1 — Reviewer reason-code schema is narrower than §7 specifies
+
+**Spec:** §7 enumerates a component-level reviewer reason-code set —
+`CONTEXT_INVALID`, `INTERPRETATION_INVALID`, `DIRECTION_MISALIGNED`,
+`EXECUTION_FAILURE`, `DETERMINISTIC_VALIDATION_FAILURE`,
+`CONFORMANCE_FALSE_POSITIVE`, `CONFORMANCE_FALSE_NEGATIVE`,
+`APPROVAL_CONTEXT_CHANGED` — so a regression label attaches to the specific
+faulty component (context, interpretation, direction, execution, validation,
+conformance or a changed approval condition).
+
+**Implementation:** the reference records interpretation-review outcomes
+(approved / rejected / iterated) and a free-text dismissal reason plus role
+(`server/server.js`, `server/provenance.js`). It does **not** yet implement the
+enumerated, component-scoped reason-code vocabulary, so a rejection is not bound
+to one of the eight components as authoritative regression evidence.
+
+**Effect:** the human-labelled regression corpus of §7 cannot be assembled with
+component-level attribution from this reference as-is. This bounds the axis-E
+evaluation, not the axis-M mechanism.
+
+**Resolution:** either implement the eight-code schema on the interpretation and
+conformance review paths, or keep this deviation recorded until the evaluation
+protocol is exercised. Tracked against `evaluation-protocol-v1.0`.
