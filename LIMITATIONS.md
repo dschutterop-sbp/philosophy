@@ -25,7 +25,8 @@ is axis E, and it is not run here (see §3).
 ## 2. Conditional guarantees (`proven*`)
 
 Two rows in the matrix are `proven*` — proven only under stated assumptions
-(v1.0 / commit `5ba0937`, single-process, non-adversarial). They are scope
+(v1.0 / commit `9a9af8bcaacfeca3d47382fb4cb70744e12e8a92`, single-process,
+non-adversarial). They are scope
 notes, not gaps, but they must not be read as unconditional.
 
 1. **Submission state machine (§5.2.2).**
