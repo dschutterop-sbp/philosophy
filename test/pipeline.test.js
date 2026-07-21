@@ -75,6 +75,36 @@ test("conformance reports the named approved boundary it evaluated", () => {
   assert.ok(result.checks.some((check) => check.boundary === "vintage-retro styling" && !check.passed));
 });
 
+test("interpretation separates verified observation from organisational inference", () => {
+  const result = interpret(context);
+  assert.equal(typeof result.interpretiveInference, "string");
+  assert.ok(result.positiveFitCondition, "develop_direction must carry a mandatory positive fit condition");
+  assert.deepEqual(result.missingEvidence, []);
+  assert.deepEqual(result.unresolvedQuestions, []);
+});
+
+test("silence recommendation asserts no positive fit condition", () => {
+  const result = interpret({ ...context, recentPosts: 2 });
+  assert.equal(result.recommendation, "do_not_publish");
+  assert.equal(result.positiveFitCondition, null);
+});
+
+test("conformance blocks a candidate that fails the mandatory positive fit condition", () => {
+  const interpretation = interpret(context);
+  const noFit = { concept: "a scoop", caption: `Open 13:30-18:00\nAperol Spritz Sorbet · Limoncello Spritz Sorbet`, fit: "just a product shot" };
+  const result = conformanceCheck(noFit, interpretation);
+  assert.equal(result.positiveFit, false);
+  assert.equal(result.conforms, false);
+  assert.ok(result.findings.some((finding) => finding.criterionId === "positive_fit_condition"));
+});
+
+test("conformance findings carry severity and a non-zero score for negative violations", () => {
+  const result = conformanceCheck({ concept: "retro postcard", caption: "Today, 13:30-18:00\nAperol Spritz Sorbet · Limoncello Spritz Sorbet", fit: "afternoon by the water" }, interpret(context));
+  assert.equal(result.conforms, false);
+  assert.ok(result.score > 0);
+  assert.ok(result.findings.every((finding) => ["major", "moderate", "minor"].includes(finding.severity)));
+});
+
 test("config flags empty (but present) weather coordinates as missing for live mode", () => {
   const settings = withEnv({ ...liveCredentials, WEATHER_LATITUDE: "", WEATHER_LONGITUDE: "" }, () => config());
   assert.equal(settings.liveReady, false);

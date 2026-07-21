@@ -31,6 +31,26 @@ The generated file is
 See the [publication build README](philosophy-layer-publication-Daniel-Schutterop/README.md)
 for font, engine, output-path, and alternate-source options.
 
+## Paper conformance and limitations
+
+The mapping between the paper and this code lives in two companion documents, so
+the paper source stays a pure position paper:
+
+- [CONFORMANCE.md](CONFORMANCE.md) is the authoritative reconciliation matrix
+  (paper §7.1). Every testable claim in §2–§7.2 appears exactly once, bound to a
+  locus in the code and classified on one of three axes — **M** (mechanism /
+  feasibility, provable by construction + replay), **E** (the §10 empirical core,
+  which needs human-subject studies and is **not run** here), and **B**
+  (boundaries the paper draws negatively, reproduced and exposed rather than
+  solved).
+- [LIMITATIONS.md](LIMITATIONS.md) is the plain-language companion: what this
+  reference does **not** establish — the two conditional (`proven*`) guarantees,
+  the unrun empirical core, the honoured boundaries, and the deployment caveats.
+
+If you read only one line: this is *feasibility* evidence for the mechanism. The
+central empirical claim (that typed, persisted, rejectable structure beats a
+monolithic step for review) is the research agenda, not a result in this repo.
+
 ## License and citation
 
 The reference implementation is licensed under [Apache License 2.0](LICENSE).
@@ -55,12 +75,18 @@ No creative directions are generated before a reviewer approves the interpretati
 ## Architectural guarantees
 
 - **Server-owned drafts.** The browser never submits an artefact manifest to be signed. It can select only a stored candidate from a stored draft.
-- **Exact-state binding.** The approval manifest records hashes of the interpretation, media and text; selected direction, account, reviewer, versions, timestamp, and expiry are also bound.
+- **Exact-state binding.** The approval manifest binds hashes of the context snapshot, each governed document (Philosophy, Strategy, Skill, template), the interpretation and its review, the selected direction, and the validation and conformance reports, alongside media, text and artefact payload; selected direction, account, reviewer role, a single publication intent and idempotency key, versions, timestamp, and expiry are also bound, and the `latest_bound_input ≤ approved ≤ scheduled ≤ expiry` ordering is enforced.
 - **Provenance.** Live weather, calendar and configured operations facts contain source and observation metadata. Demo values are explicitly marked as reviewer-supplied scenarios.
 - **Layer boundaries.** Philosophy and temporary Strategy are separate versioned documents. Context, Skill, conformance policy and template versions are recorded with every draft.
-- **Negative-first conformance.** Each approved `avoid` / rejected-frame boundary is checked and displayed individually; positive fit remains advisory.
-- **Silence.** Routine events can produce `do_not_publish`, including in the deterministic demo via **Recent posts**.
-- **Auditability.** Every meaningful transition is written as a hash-chained JSONL event. For production, send the same events to an access-controlled append-only audit system.
+- **Negative-first, non-compensatory conformance.** Each approved `avoid` / rejected-frame boundary is checked individually and scored by severity (major/moderate/minor). A hard-boundary violation or a failed mandatory `positive_fit_condition` blocks the candidate; soft violations follow a tiered disposition (reject ≥30 / human disposition 10–29 / warning <10). Indeterminate never passes. Positive fit beyond the mandatory condition is advisory. A reviewer may dismiss only *soft* findings, with a recorded reason and role, which produces a new conformance report.
+- **Full interpretation artefact.** The interpretation separates verified `observation`/`contextEvidence` from `interpretiveInference`, carries a mandatory `positiveFitCondition`, `missingEvidence` and `unresolvedQuestions`, and uses the full recommendation vocabulary (`develop_direction`, `do_not_publish`, `request_more_context`, `defer`, `escalate`).
+- **Governed decision-class taxonomy.** `governance/decision-classes.md` is an owned, versioned enumeration. An interpretation whose class is not enumerated is flagged as under-enumeration and escalated, never silently forced into the nearest class.
+- **Constraints vs preferences.** Hard admissibility boundaries (conjunctive) and preference ordering are kept separate (`server/policy.js`); a preference never overrides a hard boundary, and hard-boundary findings cannot be dismissed by a prompt-level action.
+- **Publication adapter + submission state machine.** A review-only adapter consumes one signed publication intent through an append-only `unused → claimed → terminal` store, verifying signature, expiry, destination, adapter version, payload hash and time before an at-most-one submission. It records `approved` / `submitted` / `platform` state separately and never claims byte-identical publication by an external platform.
+- **Typed fail-closed recovery.** Every stop is a typed failure (`server/failures.js`); a governed human-only fallback mode records the unavailable controls, the responsible human, the reason and a new approval state rather than acting as an implicit bypass.
+- **Silence as a signal.** Routine events produce `do_not_publish` (deterministic demo: **Recent posts**). Suppressed interpretations are persisted and a proportion flagged for review; `GET /api/metrics/silence` reports the silence rate and reasons.
+- **Auditability & provenance.** Every meaningful transition is a hash-chained JSONL event. `GET /api/provenance` exports a W3C PROV-DM profile of the decision chain; `GET /api/audit?level=full|investigator|operational` applies access-level redaction. For production, send the same events to an access-controlled append-only audit system.
+- **Evaluation apparatus.** `evaluation/fault-injection.js` injects known faults and scores layer localisation (and is honest that a confabulated-but-clean rationale is unlocatable, §7.2); `evaluation/perturbation.js` probes interpreter faithfulness under null vs relevant mutations; `evaluation/ablation.js` scaffolds the A/B/B′/C/D/E conditions and isolates the B′→C structure-vs-visibility contrast.
 
 The built-in reviewer identity is a reference adapter controlled by deployment configuration. Replace it with authenticated identity and role claims before treating this as a production authorisation system. Drafts are intentionally held in memory, so a restart invalidates in-flight review links; production needs durable, access-controlled draft storage.
 

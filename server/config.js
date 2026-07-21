@@ -28,5 +28,13 @@ export function config() {
     products: (process.env.AVAILABLE_PRODUCTS || "Aperol Spritz Sorbet,Limoncello Spritz Sorbet").split(",").map((item) => item.trim()).filter(Boolean),
     recentPosts: Number(process.env.RECENT_POSTS || 0),
     reviewer: { id: process.env.DEMO_REVIEWER_ID || "demo-publisher", role: process.env.DEMO_REVIEWER_ROLE || "publisher" },
+    // Silence-as-signal (§6): persist suppressed interpretations and route every Nth for review.
+    silenceReviewSampleEvery: Number(process.env.SILENCE_REVIEW_SAMPLE_EVERY || 5),
+    // Risk-aware: consequential domains may require explicit human approval of a silence/defer.
+    requireApprovalForSilence: process.env.REQUIRE_APPROVAL_FOR_SILENCE === "true",
+    // Publication adapter deployment identity (§5.2.2).
+    destination: process.env.PUBLICATION_DESTINATION || "instagram:account_07",
+    accountId: process.env.PUBLICATION_ACCOUNT_ID || "instagram-story-reference",
+    adapterVersion: "reference-review-only:1.0.0",
   };
 }

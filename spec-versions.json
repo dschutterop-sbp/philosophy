@@ -1,0 +1,6 @@
+{
+  "paperSpec": "paper-spec-v1.0",
+  "interpretationSchema": "interpretation-schema-v1.0",
+  "evaluationProtocol": "evaluation-protocol-v1.0",
+  "note": "Immutable identifiers frozen before implementation results are known (paper §7.1). The running system declares which versions it instantiates; any deviation from the frozen architecture, schema, ablation conditions, primary metrics or fault-injection plan must be recorded as a deviation rather than silently absorbed."
+}
