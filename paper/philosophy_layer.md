@@ -96,6 +96,7 @@ This position paper makes three architectural contributions:
 
 ---
 
+<a id="paper-philosophy-layer"></a>
 # 2. The Philosophy Layer
 
 **The Philosophy layer is a versioned decision layer that transforms verified context into an explicit interpretation of relevance, intent and appropriate action before execution begins.**[^philosophy-name]
@@ -316,6 +317,7 @@ The distinction is architectural, not conceptual: the contribution is not a new 
 
 ---
 
+<a id="paper-architecture"></a>
 # 5. Architecture
 
 ```text
@@ -350,6 +352,7 @@ The boundaries can be stated compactly:
 
 The boundaries are not claims that any layer is value-free. Source selection and normalisation already embody choices, a Skill still encodes decisions about validity, approval and required notices and a reviewer still exercises judgement. The separation concerns the *kind* of judgement each layer is delegated to exercise and the record each decision must leave behind.
 
+<a id="paper-creative-direction"></a>
 ## 5.1 Creative Direction Is a Bounded Exploration, Not a Hidden Judge
 
 Earlier drafts left this stage underspecified, which risked reintroducing exactly the invisible judgement the architecture exists to eliminate. The stage is therefore defined as strictly as its neighbours.
@@ -372,6 +375,7 @@ Each candidate declares which prohibited direction it sits closest to. That inve
 
 **Boundaries.** Creative Direction inherits the interpretation's `semantic_direction` and `avoid` list verbatim and may not weaken them. It may not introduce facts, products, prices or claims absent from verified context. It decides *how* meaning is expressed; it never revisits *whether* or *why*. A direction that requires new factual claims must return to the Context Builder rather than smuggling those claims into execution.
 
+<a id="paper-semantic-conformance"></a>
 ## 5.2 Semantic Conformance and Exact-State Approval
 
 An interpretation constrains generation only if something verifies that the artefact stayed inside it. Deterministic validation cannot do this by definition: it checks format, facts, policy and required elements. An executor that ignores the interpretation and produces a perfectly formatted sunshine cliché could pass step 7 untouched. Without a conformance check, the pipeline presents one rationale and may authorise and submit something else. Hidden judgement has merely returned through the back door.
@@ -468,6 +472,7 @@ A retrieved platform-state hash or screenshot may be stored when the integration
 
 The security claim remains conditional on canonical serialisation, collision-resistant hashing, protected signing keys, atomic and append-only intent-consumption records, authenticated time, correct adapter implementation and the absence of out-of-band publication paths. The paper specifies the approval semantics, not a complete cryptographic or distributed-transaction protocol.
 
+<a id="paper-precedence"></a>
 ## 5.3 Constraints, Preferences and Authorised Override
 
 A single precedence list is insufficient because hard prohibitions and overrideable preferences behave differently. The architecture therefore separates **admissibility constraints** from **preference ordering**.
@@ -503,6 +508,7 @@ Human authority is role-bound rather than absolute. An authorised person may ove
 
 The operational success metric of a well-specified Philosophy is that authorised overrides become *rarer*, never that they become impossible. An override also remains subject to exact-state approval. Changing any bound part of the approval bundle invalidates the existing token, after which the new bundle must be approved as a new state. Authorised human control and exact-state binding are complementary, not in tension.
 
+<a id="paper-versioning"></a>
 ## 5.4 Versioning
 
 The audit record for every approved submission records the versions and immutable identifiers that produced it:
@@ -533,6 +539,7 @@ The interpretation artefact separates along the same seam the paper draws elsewh
 
 The boundary is not as simple as "fields are technical, values are normative." A schema change is technical only when it leaves representational scope, required evidence and decision semantics unchanged. Adding fields such as `risk_level`, `affected_group` or `commercial_priority` can change what the system is required to notice and may therefore require normative review. Schema governance must classify changes by semantic effect rather than file type.
 
+<a id="paper-strategy"></a>
 ## 5.5 The Strategy Layer
 
 Strategy is a separately versioned representation of what the organisation is *currently* trying to achieve and is bounded to a campaign or operating period. Where the Philosophy answers "what kind of organisation are we, and what do we refuse to be," Strategy answers "what is the current priority, and for how long."
@@ -562,6 +569,7 @@ This distinction resolves the apparent conflict between Strategy and Philosophy.
 
 Keeping Strategy separate from Philosophy prevents §9's "Philosophy as accumulated habit" failure in its most common form: a temporary campaign preference hardening into a permanent stated value simply because nobody removed it when the period ended. A Strategy version expires by design; a Philosophy version remains active until it is superseded or withdrawn.
 
+<a id="paper-governance"></a>
 ## 5.6 Governance and Ownership
 
 The Philosophy layer contains normative organisational judgement, so changing it is a governance action rather than ordinary prompt maintenance.
@@ -576,6 +584,7 @@ The `decision_class` taxonomy is governed on the same terms. Because it is autho
 
 In larger organisations, access should be role-based. Material changes should record who proposed them, who approved them, the rationale and the historical scenarios used to test the new version. Conflicts between teams should be resolved through explicit ownership, documented adjudication and the constraint and preference model rather than by whichever prompt was edited last.
 
+<a id="paper-failures"></a>
 ## 5.7 Failure and Recovery Semantics
 
 The reference architecture fails closed. No interpretation accepted for continuation means no executable direction; no valid direction and artefact bundle means no valid approval; no valid approval means no authorised submission.
@@ -598,6 +607,7 @@ A deployment may define an explicit human-only fallback for a service outage, bu
 
 ---
 
+<a id="paper-silence"></a>
 # 6. Silence Is a Decision
 
 Automation biases towards action: a trigger fires, so the system must produce something. Otherwise the trigger feels wasted.
@@ -623,6 +633,7 @@ The treatment of silence must be risk-aware. In incident communication, customer
 
 ---
 
+<a id="paper-testing"></a>
 # 7. Testing and Evaluation
 
 This is the hardest part of the design. It deserves a direct answer rather than a gesture.
@@ -839,6 +850,7 @@ Stated without hedging, the falsifiable core is this: separating interpretation 
 
 ---
 
+<a id="paper-references"></a>
 # References
 
 1. Bai, Y. et al. (2022). *Constitutional AI: Harmlessness from AI Feedback*. arXiv:2212.08073. https://arxiv.org/abs/2212.08073

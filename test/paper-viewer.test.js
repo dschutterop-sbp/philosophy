@@ -12,6 +12,20 @@ test("every paper reference extracts a headed source segment", async () => {
   }
 });
 
+test("canonical paper declares every interface reference anchor", async () => {
+  const source = await readFile(new URL("../paper/philosophy_layer.md", import.meta.url), "utf8");
+  for (const reference of Object.values(paperReferences)) {
+    const anchor = reference.href.split("#")[1];
+    assert.match(source, new RegExp(`<a id="${anchor}"></a>`));
+  }
+});
+
+test("reference catalog covers the paper mechanisms and bibliography", () => {
+  for (const key of ["context", "interpretation", "creativeDirection", "validation", "conformance", "humanGate", "approval", "audit", "strategy", "governance", "failures", "silence", "versions", "evaluation", "references"]) {
+    assert.ok(paperReferences[key], `missing paper reference for ${key}`);
+  }
+});
+
 test("reader renders tables and omits source-only anchors", () => {
   const rendered = renderMarkdown(`<a id="segment"></a>
 | Layer | Question |
