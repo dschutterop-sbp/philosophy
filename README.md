@@ -17,18 +17,18 @@ event to its relevant paper section.
 ### Build the paper PDF
 
 The styled, reproducible PDF build lives in
-[`philosophy-layer-publication-Daniel-Schutterop`](philosophy-layer-publication-Daniel-Schutterop).
+[`document-rendering`](document-rendering).
 It always uses the canonical paper source above; it does not require a copied
 Markdown file. After installing Pandoc and Typst (`brew install pandoc typst`
 on macOS), build it with:
 
 ```sh
-make -C philosophy-layer-publication-Daniel-Schutterop pdf
+make -C document-rendering pdf
 ```
 
 The generated file is
-`philosophy-layer-publication-Daniel-Schutterop/build/philosophy_layer.pdf`.
-See the [publication build README](philosophy-layer-publication-Daniel-Schutterop/README.md)
+`document-rendering/build/philosophy_layer.pdf`.
+See the [document-rendering README](document-rendering/README.md)
 for font, engine, output-path, and alternate-source options.
 
 ## Paper conformance and limitations

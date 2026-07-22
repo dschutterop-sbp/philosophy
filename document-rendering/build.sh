@@ -5,11 +5,21 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The paper has one canonical editable source in the repository.  Set SOURCE
 # explicitly only when producing a PDF from another Markdown document.
 SOURCE="${SOURCE:-$ROOT/../paper/philosophy_layer.md}"
-METADATA="${METADATA:-$ROOT/metadata.yaml}"
-OUTPUT="${1:-$ROOT/build/philosophy_layer.pdf}"
+BUILD_DIR="$ROOT/build"
+OUTPUT="$BUILD_DIR/philosophy_layer.pdf"
 ENGINE="${ENGINE:-auto}"
 
-mkdir -p "$(dirname "$OUTPUT")"
+if (( $# > 0 )); then
+  echo "This build has a fixed output path: $OUTPUT" >&2
+  exit 2
+fi
+
+[[ -f "$SOURCE" ]] || {
+  echo "Paper source not found: $SOURCE" >&2
+  exit 1
+}
+
+mkdir -p "$BUILD_DIR"
 
 require() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -35,13 +45,22 @@ COMMON=(
   "$SOURCE"
   --standalone
   --resource-path="$(dirname "$SOURCE")"
-  --metadata-file="$METADATA"
   --toc
   --toc-depth=3
-  --highlight-style=tango
+  --syntax-highlighting=none
   --from=markdown+smart
   --output="$OUTPUT"
 )
+
+# The canonical paper carries its own publication metadata. An alternate source
+# may opt into a separate metadata file explicitly.
+if [[ -n "${METADATA:-}" ]]; then
+  [[ -f "$METADATA" ]] || {
+    echo "Metadata file not found: $METADATA" >&2
+    exit 1
+  }
+  COMMON+=(--metadata-file="$METADATA")
+fi
 
 case "$ENGINE" in
   typst)
@@ -73,5 +92,10 @@ case "$ENGINE" in
     exit 2
     ;;
 esac
+
+[[ -s "$OUTPUT" ]] || {
+  echo "Build completed without producing a non-empty PDF: $OUTPUT" >&2
+  exit 1
+}
 
 printf 'Built %s with %s\n' "$OUTPUT" "$ENGINE"

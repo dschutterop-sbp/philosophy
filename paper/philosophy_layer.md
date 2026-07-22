@@ -1,11 +1,27 @@
-> Copyright © 2026 Daniel Schutterop
-> Licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+---
+title: "The Philosophy Layer"
+subtitle: "An Accountable and Traceable Architecture for Organisational AI Judgement"
+author: "Daniel Schutterop"
+date: "July 2026"
+lang: en-GB
+rights: "Copyright © 2026 Daniel Schutterop. Licensed under CC BY 4.0."
+keywords:
+  - artificial intelligence
+  - AI architecture
+  - organisational judgement
+  - semantic conformance
+  - human approval
+  - governance
+description: >-
+  An architectural position paper proposing a versioned Philosophy layer
+  between verified context and constraint-governed execution in AI-assisted
+  systems.
+papersize: a4
+fontsize: 11pt
+toc-title: Contents
+---
 
-# The Philosophy Layer: An Accountable and Traceable Architecture for Organisational AI Judgement
-
-Daniel Schutterop
-
-# Abstract
+# Abstract {.unnumbered .unlisted}
 
 A common AI application pattern combines **context** (the facts available to the system), a **skill** (structured instructions defining what the system may do) and **guardrails** (checks that enforce declared constraints).
 
@@ -96,8 +112,7 @@ This position paper makes three architectural contributions:
 
 ---
 
-<a id="paper-philosophy-layer"></a>
-# 2. The Philosophy Layer
+# 2. The Philosophy Layer {#paper-philosophy-layer}
 
 **The Philosophy layer is a versioned decision layer that transforms verified context into an explicit interpretation of relevance, intent and appropriate action before execution begins.**[^philosophy-name]
 
@@ -317,8 +332,7 @@ The distinction is architectural, not conceptual: the contribution is not a new 
 
 ---
 
-<a id="paper-architecture"></a>
-# 5. Architecture
+# 5. Architecture {#paper-architecture}
 
 ```text
 1.  Trigger                         A relevant event occurs.
@@ -334,9 +348,7 @@ The distinction is architectural, not conceptual: the contribution is not a new 
 11. Audit                           Records the complete decision chain, token consumption, submission receipt and observable platform state.
 ```
 
-![The Philosophy layer pipeline](figures/fig1-pipeline.svg)
-
-*Figure 1. The Philosophy layer pipeline. The typed, persisted interpretation artefact is produced before generation and may be stopped at a non-authorising early rejection checkpoint. The later human gate remains the only publication approval and binds interpretation, direction, artefact and submission intent into one recorded decision.*
+![The Philosophy layer pipeline. The typed, persisted interpretation artefact is produced before generation and may be stopped at a non-authorising early rejection checkpoint. The later human gate remains the only publication approval and binds interpretation, direction, artefact and submission intent into one recorded decision.](figures/fig1-pipeline.svg){#fig-philosophy-pipeline}
 
 Responsibilities stay separated. The Context Builder may select, normalise and verify observations, but it introduces no communicative or normative framing. The interpreter modifies no facts. The Philosophy layer determines what the situation may mean, whether action is warranted and which semantic boundaries apply. The early checkpoint may reject that premise or permit work to continue, but it cannot approve publication. Creative Direction explores how the accepted meaning might be expressed. The Skill should minimise discretionary judgement. It owns executable constraints and operational validity, while the Philosophy owns stable principles for choosing among valid actions.
 
@@ -352,8 +364,7 @@ The boundaries can be stated compactly:
 
 The boundaries are not claims that any layer is value-free. Source selection and normalisation already embody choices, a Skill still encodes decisions about validity, approval and required notices and a reviewer still exercises judgement. The separation concerns the *kind* of judgement each layer is delegated to exercise and the record each decision must leave behind.
 
-<a id="paper-creative-direction"></a>
-## 5.1 Creative Direction Is a Bounded Exploration, Not a Hidden Judge
+## 5.1 Creative Direction Is a Bounded Exploration, Not a Hidden Judge {#paper-creative-direction}
 
 Earlier drafts left this stage underspecified, which risked reintroducing exactly the invisible judgement the architecture exists to eliminate. The stage is therefore defined as strictly as its neighbours.
 
@@ -375,8 +386,7 @@ Each candidate declares which prohibited direction it sits closest to. That inve
 
 **Boundaries.** Creative Direction inherits the interpretation's `semantic_direction` and `avoid` list verbatim and may not weaken them. It may not introduce facts, products, prices or claims absent from verified context. It decides *how* meaning is expressed; it never revisits *whether* or *why*. A direction that requires new factual claims must return to the Context Builder rather than smuggling those claims into execution.
 
-<a id="paper-semantic-conformance"></a>
-## 5.2 Semantic Conformance and Exact-State Approval
+## 5.2 Semantic Conformance and Exact-State Approval {#paper-semantic-conformance}
 
 An interpretation constrains generation only if something verifies that the artefact stayed inside it. Deterministic validation cannot do this by definition: it checks format, facts, policy and required elements. An executor that ignores the interpretation and produces a perfectly formatted sunshine cliché could pass step 7 untouched. Without a conformance check, the pipeline presents one rationale and may authorise and submit something else. Hidden judgement has merely returned through the back door.
 
@@ -446,9 +456,7 @@ The bundle binds the state that the reviewer actually assessed:
 approval_token = sign(canonical_hash(approval_bundle))
 ```
 
-![The approval bundle as one hash-bound unit](figures/fig2-approval-bundle.svg)
-
-*Figure 2. The approval bundle as one hash-bound unit. The reviewed state is bound and signed into a consumable approval token that authorises one exact submission intent for one exact payload. Changing any bound entity invalidates the token and requires re-approval.*
+![The approval bundle as one hash-bound unit. The reviewed state is bound and signed into a consumable approval token that authorises one exact submission intent for one exact payload. Changing any bound entity invalidates the token and requires re-approval.](figures/fig2-approval-bundle.svg){#fig-approval-bundle}
 
 The `artefact_payload_hash` covers a canonical representation of the outbound text, media assets, metadata and platform parameters. Separate component hashes may also be retained for diagnosis, but the approval decision applies to the canonical bundle as a whole. The approver identity records who exercised authority; the role records which authority they exercised. The time ordering must also be valid: the latest bound evidence and early-checkpoint decision must predate approval, approval must not occur after the scheduled submission and the submission must occur before expiry. In compact form: `latest_bound_input_time ≤ approved_at ≤ scheduled_time ≤ expiry`.
 
@@ -472,12 +480,11 @@ A retrieved platform-state hash or screenshot may be stored when the integration
 
 The security claim remains conditional on canonical serialisation, collision-resistant hashing, protected signing keys, atomic and append-only intent-consumption records, authenticated time, correct adapter implementation and the absence of out-of-band publication paths. The paper specifies the approval semantics, not a complete cryptographic or distributed-transaction protocol.
 
-<a id="paper-precedence"></a>
-## 5.3 Constraints, Preferences and Authorised Override
+## 5.3 Constraints, Preferences and Authorised Override {#paper-precedence}
 
 A single precedence list is insufficient because hard prohibitions and overrideable preferences behave differently. The architecture therefore separates **admissibility constraints** from **preference ordering**.
 
-### Hard admissibility boundaries
+### 5.3.1 Hard Admissibility Boundaries
 
 ```text
 safety, law and non-overridable governance controls
@@ -488,7 +495,7 @@ AND Philosophy invariants and explicit prohibitions
 
 These boundaries are conjunctive, not a precedence ranking. Together they define the valid decision space. A conflict between hard boundaries is not resolved by letting one outrank another; it produces an invalid state and must fail closed or escalate to the governance process that owns the conflicting rules. A Philosophy may favour visual simplicity, but it may not remove a legally required warning. A creative direction may be strong, but it may not invent availability. A Strategy may prioritise a campaign, but it may not authorise a framing explicitly prohibited by the organisation's Philosophy.
 
-### Preference ordering inside the valid space
+### 5.3.2 Preference Ordering Inside the Valid Space
 
 ```text
 1. authorised human instruction
@@ -498,9 +505,7 @@ These boundaries are conjunctive, not a precedence ranking. Together they define
 5. model creativity
 ```
 
-![Hard admissibility boundaries versus preference ordering](figures/fig3-admissibility-preference.svg)
-
-*Figure 3. Hard admissibility boundaries define the valid decision space; preference ordering ranks only the options that remain admissible. Preferences never override a hard boundary.*
+![Hard admissibility boundaries versus preference ordering. Hard admissibility boundaries define the valid decision space; preference ordering ranks only the options that remain admissible. Preferences never override a hard boundary.](figures/fig3-admissibility-preference.svg){#fig-admissibility-preference}
 
 Preferences rank options that already satisfy every hard boundary. Strategy can make a product-availability moment more salient during a launch period; it cannot legalise a prohibited identity or communication pattern. Philosophy defaults guide interpretation when no more specific authorised objective applies. Overrideable Skill defaults operate later and only choose among semantically admissible execution options; they do not redefine relevance or organisational intent.
 
@@ -508,8 +513,7 @@ Human authority is role-bound rather than absolute. An authorised person may ove
 
 The operational success metric of a well-specified Philosophy is that authorised overrides become *rarer*, never that they become impossible. An override also remains subject to exact-state approval. Changing any bound part of the approval bundle invalidates the existing token, after which the new bundle must be approved as a new state. Authorised human control and exact-state binding are complementary, not in tension.
 
-<a id="paper-versioning"></a>
-## 5.4 Versioning
+## 5.4 Versioning {#paper-versioning}
 
 The audit record for every approved submission records the versions and immutable identifiers that produced it:
 
@@ -539,8 +543,7 @@ The interpretation artefact separates along the same seam the paper draws elsewh
 
 The boundary is not as simple as "fields are technical, values are normative." A schema change is technical only when it leaves representational scope, required evidence and decision semantics unchanged. Adding fields such as `risk_level`, `affected_group` or `commercial_priority` can change what the system is required to notice and may therefore require normative review. Schema governance must classify changes by semantic effect rather than file type.
 
-<a id="paper-strategy"></a>
-## 5.5 The Strategy Layer
+## 5.5 The Strategy Layer {#paper-strategy}
 
 Strategy is a separately versioned representation of what the organisation is *currently* trying to achieve and is bounded to a campaign or operating period. Where the Philosophy answers "what kind of organisation are we, and what do we refuse to be," Strategy answers "what is the current priority, and for how long."
 
@@ -569,8 +572,7 @@ This distinction resolves the apparent conflict between Strategy and Philosophy.
 
 Keeping Strategy separate from Philosophy prevents §9's "Philosophy as accumulated habit" failure in its most common form: a temporary campaign preference hardening into a permanent stated value simply because nobody removed it when the period ended. A Strategy version expires by design; a Philosophy version remains active until it is superseded or withdrawn.
 
-<a id="paper-governance"></a>
-## 5.6 Governance and Ownership
+## 5.6 Governance and Ownership {#paper-governance}
 
 The Philosophy layer contains normative organisational judgement, so changing it is a governance action rather than ordinary prompt maintenance.
 
@@ -584,8 +586,7 @@ The `decision_class` taxonomy is governed on the same terms. Because it is autho
 
 In larger organisations, access should be role-based. Material changes should record who proposed them, who approved them, the rationale and the historical scenarios used to test the new version. Conflicts between teams should be resolved through explicit ownership, documented adjudication and the constraint and preference model rather than by whichever prompt was edited last.
 
-<a id="paper-failures"></a>
-## 5.7 Failure and Recovery Semantics
+## 5.7 Failure and Recovery Semantics {#paper-failures}
 
 The reference architecture fails closed. No interpretation accepted for continuation means no executable direction; no valid direction and artefact bundle means no valid approval; no valid approval means no authorised submission.
 
@@ -607,8 +608,7 @@ A deployment may define an explicit human-only fallback for a service outage, bu
 
 ---
 
-<a id="paper-silence"></a>
-# 6. Silence Is a Decision
+# 6. Silence Is a Decision {#paper-silence}
 
 Automation biases towards action: a trigger fires, so the system must produce something. Otherwise the trigger feels wasted.
 
@@ -633,8 +633,7 @@ The treatment of silence must be risk-aware. In incident communication, customer
 
 ---
 
-<a id="paper-testing"></a>
-# 7. Testing and Evaluation
+# 7. Testing and Evaluation {#paper-testing}
 
 This is the hardest part of the design. It deserves a direct answer rather than a gesture.
 
@@ -678,7 +677,7 @@ Only a label attached to the relevant component becomes authoritative regression
 
 Additional test dimensions include consistency across similar scenarios, stability under small context perturbations, reviewer agreement and replay of the historical corpus after every Philosophy version bump to detect silent behaviour shifts.
 
-### Reviewer Qualification and Calibration
+**Reviewer qualification and calibration.**
 
 Reviewer selection is part of the experimental design rather than an incidental staffing choice. Authoritative reviewers need two distinct competencies. **Domain competence** is the ability to judge the organisation, audience and normative setting, such as Il Tiratore's identity or the employee relationship in the corporate vignette. **Protocol competence** is the ability to distinguish context, interpretation, direction, execution, validation, conformance and approval faults. A reviewer who has only one competence should not be treated as authoritative for both judgements.
 
@@ -723,7 +722,7 @@ The evaluation should therefore separate two studies.
 
 **Review-process study.** Reviewers receive the full interface and decision chain available in each condition. This study cannot be condition-blind because the presence of an interpretation, checkpoint record, direction or conformance report is itself the treatment. It measures the number and type of corrections, review time, time to faulty premise, correction depth, localisation accuracy and review-object load. Interpretation artefacts are also scored separately so that stronger final wording is not mistaken for better judgement.
 
-### Fault Injection for Error Localisation
+### 7.1.1 Fault Injection for Error Localisation
 
 Natural production failures rarely provide an uncontested ground truth for which layer was responsible. Error localisation accuracy should therefore be tested with controlled fault injection. Example interventions include:
 
@@ -738,7 +737,7 @@ Natural production failures rarely provide an uncontested ground truth for which
 
 Reviewers receive the resulting decision chain without being told which intervention occurred and identify the faulty layer or state transition. Localisation accuracy is then measured against the injected ground truth rather than inferred from subjective blame. The interpreter-fault injection is the case in which the unfaithful-rationale limit of §3 and §7.2 bites hardest, and localisation accuracy there should be reported separately rather than pooled with the more locatable faults.
 
-### Reviewability Measures
+### 7.1.2 Reviewability Measures
 
 The experiment should additionally measure:
 
@@ -758,7 +757,7 @@ The experiment would not prove universal superiority. It would test the paper's 
 
 This is not a solved evaluation problem. It is tractable because the layer's output is small, structured and semantically narrow, which makes it easier to judge than a finished creative artefact.
 
-### Evaluation Sequencing and Specification Freeze
+### 7.1.3 Evaluation Sequencing and Specification Freeze
 
 The reference implementation will necessarily be shaped by the finished architecture. That sequence is constructive rather than circular only if the specification and evaluation criteria are frozen before implementation results are known. The first published version should therefore establish immutable identifiers for at least the paper specification, interpretation schema and evaluation protocol, for example:
 
@@ -850,8 +849,7 @@ Stated without hedging, the falsifiable core is this: separating interpretation 
 
 ---
 
-<a id="paper-references"></a>
-# References
+# References {#paper-references .unnumbered}
 
 1. Bai, Y. et al. (2022). *Constitutional AI: Harmlessness from AI Feedback*. arXiv:2212.08073. https://arxiv.org/abs/2212.08073
 2. Wei, J. et al. (2022). *Chain-of-Thought Prompting Elicits Reasoning in Large Language Models*. Advances in Neural Information Processing Systems 35. arXiv:2201.11903. https://arxiv.org/abs/2201.11903
