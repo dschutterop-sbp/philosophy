@@ -1,6 +1,6 @@
-# Philosophy Layer publication build
+# Document rendering
 
-A reproducible Markdown-to-PDF setup for the paper. It builds the repository's
+A reproducible Markdown-to-PDF workflow for the paper. It builds the repository's
 canonical source, [`../paper/philosophy_layer.md`](../paper/philosophy_layer.md),
 so the PDF and the versioned paper never drift apart.
 
@@ -12,13 +12,11 @@ brew install pandoc typst
 
 Typst is the preferred engine. The build script falls back to XeLaTeX when Typst is not installed.
 
-## 2. Author metadata
+## 2. Publication metadata
 
-The author is configured in `metadata.yaml`:
-
-```yaml
-author: "Daniel Schutterop"
-```
+Title, author, date, language, licence and PDF metadata live in the canonical
+Markdown front matter. Keeping metadata with the paper prevents the editable
+source and its export configuration from drifting apart.
 
 ## 3. Build
 
@@ -38,11 +36,17 @@ The equivalent Make command is:
 make pdf
 ```
 
-To generate a PDF for another Markdown source while retaining the same
-metadata and styling, set `SOURCE`:
+To generate a PDF for another Markdown source with its own front matter while
+retaining the same styling, set `SOURCE`:
 
 ```bash
 SOURCE=/path/to/paper.md ./build.sh /path/to/paper.pdf
+```
+
+An alternate source without front matter may also provide `METADATA` explicitly:
+
+```bash
+SOURCE=/path/to/paper.md METADATA=/path/to/metadata.yaml ./build.sh
 ```
 
 ## Useful variants
@@ -76,7 +80,6 @@ For the supplied Typst template, `New Computer Modern` is the safest default. `A
 ## Files
 
 - `../paper/philosophy_layer.md`: canonical publication source
-- `metadata.yaml`: title, author, date and PDF metadata
 - `templates/philosophy-paper.typst`: Pandoc and Typst publication template
 - `templates/latex-header.tex`: styled fallback for XeLaTeX
 - `build.sh`: single-command build

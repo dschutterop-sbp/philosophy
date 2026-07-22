@@ -12,11 +12,11 @@ test("every paper reference extracts a headed source segment", async () => {
   }
 });
 
-test("canonical paper declares every interface reference anchor", async () => {
+test("canonical paper declares every interface reference heading id", async () => {
   const source = await readFile(new URL("../paper/philosophy_layer.md", import.meta.url), "utf8");
   for (const reference of Object.values(paperReferences)) {
     const anchor = reference.href.split("#")[1];
-    assert.match(source, new RegExp(`<a id="${anchor}"></a>`));
+    assert.match(source, new RegExp(`^#{1,6} .+\\{[^}]*#${anchor}(?=\\s|})`, "m"));
   }
 });
 
@@ -26,11 +26,11 @@ test("reference catalog covers the paper mechanisms and bibliography", () => {
   }
 });
 
-test("reader renders tables and omits source-only anchors", () => {
-  const rendered = renderMarkdown(`<a id="segment"></a>
+test("reader renders tables and native heading ids", () => {
+  const rendered = renderMarkdown(`# Segment {#segment}
 | Layer | Question |
 |---|---|
 | Context | What is true? |`);
   assert.match(rendered, /<table>/);
-  assert.doesNotMatch(rendered, /segment/);
+  assert.match(rendered, /<h1 id="segment">Segment<\/h1>/);
 });

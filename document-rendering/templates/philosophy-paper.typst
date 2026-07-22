@@ -6,6 +6,7 @@ $definitions.typst()$
   authors: (),
   keywords: (),
   date: none,
+  rights: none,
   cols: 1,
   margin: (x: 25mm, y: 24mm),
   paper: "a4",
@@ -62,6 +63,7 @@ $definitions.typst()$
   show link: underline
 
   if title != none {
+    set page(numbering: none)
     block(below: 2.6em)[
       #v(7mm)
       #text(size: 30pt, weight: "bold", fill: rgb("172033"))[#title]
@@ -79,8 +81,14 @@ $definitions.typst()$
         #v(0.35em)
         #text(size: 10.5pt, fill: rgb("596273"))[#date]
       ]
+      #if rights != none [
+        #v(2.5em)
+        #text(size: 8.5pt, fill: rgb("687082"))[#rights]
+      ]
     ]
     pagebreak()
+    set page(numbering: "1")
+    counter(page).update(1)
   }
 
   if cols == 1 { doc } else { columns(cols, doc) }
@@ -124,6 +132,9 @@ $if(keywords)$
 $endif$
 $if(date)$
   date: "$date$",
+$endif$
+$if(rights)$
+  rights: [$rights$],
 $endif$
 $if(lang)$
   lang: "$lang$",

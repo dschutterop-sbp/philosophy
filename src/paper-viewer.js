@@ -3,14 +3,11 @@ import { PAPER_SOURCE, referenceFor } from "./paper-references.js";
 let sourcePromise;
 
 export function extractPaperSegment(source, reference) {
-  const marker = `<a id="${reference.href.split("#")[1]}"></a>`;
-  const markerIndex = source.indexOf(marker);
-  if (markerIndex < 0) throw new Error(`Source segment is missing: ${reference.label}`);
-  const afterMarker = source.slice(markerIndex + marker.length).replace(/^\s+/, "");
-  const heading = afterMarker.match(/^(#{1,6})\s+.+$/m);
+  const anchor = reference.href.split("#")[1];
+  const headingPattern = new RegExp(`^(#{1,6})\\s+.+\\{[^}]*#${anchor}(?=\\s|})[^}]*\\}\\s*$`, "m");
+  const heading = source.match(headingPattern);
   if (!heading) throw new Error(`Source segment has no heading: ${reference.label}`);
-  const headingStart = heading.index;
-  const content = afterMarker.slice(headingStart);
+  const content = source.slice(heading.index);
   const nextHeading = new RegExp(`^#{1,${reference.level}}\\s+`, "m");
   const boundary = content.slice(heading[0].length).search(nextHeading);
   return boundary < 0 ? content.trim() : content.slice(0, heading[0].length + boundary).trim();
@@ -49,7 +46,13 @@ export function renderMarkdown(markdown) {
       while (lines[index]?.trim().startsWith("|")) { rows.push(cells(lines[index])); index += 1; }
       index -= 1;
       html.push(`<table><thead><tr>${header.map((cell) => `<th>${inline(cell)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${inline(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
-    } else if (heading) { flushParagraph(); flushList(); html.push(`<h${heading[1].length}>${inline(heading[2])}</h${heading[1].length}>`); }
+    } else if (heading) {
+      flushParagraph(); flushList();
+      const attributes = heading[2].match(/\s+\{([^}]+)\}\s*$/);
+      const id = attributes?.[1].match(/(?:^|\s)#([^\s.]+)/)?.[1];
+      const label = attributes ? heading[2].slice(0, attributes.index) : heading[2];
+      html.push(`<h${heading[1].length}${id ? ` id="${id}"` : ""}>${inline(label)}</h${heading[1].length}>`);
+    }
     else if (item) { flushParagraph(); const type = /\d+\./.test(item[1]) ? "ol" : "ul"; if (!list || list.type !== type) { flushList(); list = { type, items: [] }; } list.items.push(item[2]); }
     else if (/^---+$/.test(line)) { flushParagraph(); flushList(); html.push("<hr>"); }
     else if (line.startsWith("> ")) { flushParagraph(); flushList(); html.push(`<blockquote>${inline(line.slice(2))}</blockquote>`); }
