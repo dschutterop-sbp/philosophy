@@ -1,31 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="680" viewBox="0 0 680 752" role="img" aria-label="The Philosophy layer pipeline">
+<svg xmlns="http://www.w3.org/2000/svg" width="680" viewBox="0 0 680 890" role="img" aria-label="Eleven-stage Philosophy layer pipeline from trigger to audit">
 <style>
 text{font-family:'Helvetica Neue',Arial,sans-serif}
-.th{font-weight:500;font-size:14px;fill:#2C2C2A}
-.ts{font-weight:400;font-size:12px;fill:#5F5E5A}
-.box{fill:#FFFFFF;stroke:#B4B2A9;stroke-width:0.5}
-.teal{fill:#E1F5EE;stroke:#0F6E56;stroke-width:1}
-.coral{fill:#FAECE7;stroke:#993C1D;stroke-width:1}
-.teal-th{font-weight:500;font-size:14px;fill:#085041}.teal-ts{font-weight:400;font-size:12px;fill:#0F6E56}
-.coral-th{font-weight:500;font-size:14px;fill:#712B13}.coral-ts{font-weight:400;font-size:12px;fill:#993C1D}
-.arr{stroke:#5F5E5A;stroke-width:1.5;fill:none}
+.num{font-weight:600;font-size:12px;fill:#5F5E5A}.th{font-weight:500;font-size:14px;fill:#2C2C2A}.ts{font-weight:400;font-size:11.5px;fill:#5F5E5A}
+.box{fill:#FFFFFF;stroke:#B4B2A9;stroke-width:.7}.teal{fill:#E1F5EE;stroke:#0F6E56;stroke-width:1}.amber{fill:#FAEEDA;stroke:#854F0B;stroke-width:1}.coral{fill:#FAECE7;stroke:#993C1D;stroke-width:1}
+.teal-th{font-weight:500;font-size:14px;fill:#085041}.teal-ts{font-weight:400;font-size:11.5px;fill:#0F6E56}.amber-th{font-weight:500;font-size:14px;fill:#633806}.amber-ts{font-weight:400;font-size:11.5px;fill:#854F0B}.coral-th{font-weight:500;font-size:14px;fill:#712B13}.coral-ts{font-weight:400;font-size:11.5px;fill:#993C1D}
+.arr{stroke:#5F5E5A;stroke-width:1.35;fill:none}.note{font-weight:500;font-size:11px;fill:#854F0B}
 </style>
-<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
-<rect class="box" x="180" y="50" width="320" height="44" rx="8"/><text class="th" x="340" y="72" text-anchor="middle" dominant-baseline="central">Trigger</text>
-<line class="arr" x1="340" y1="94" x2="340" y2="122" marker-end="url(#a)"/>
-<rect class="box" x="180" y="124" width="320" height="56" rx="8"/><text class="th" x="340" y="144" text-anchor="middle" dominant-baseline="central">Context builder</text><text class="ts" x="340" y="162" text-anchor="middle" dominant-baseline="central">Verified observations, no framing</text>
-<line class="arr" x1="340" y1="180" x2="340" y2="208" marker-end="url(#a)"/>
-<rect class="teal" x="180" y="210" width="320" height="56" rx="8"/><text class="teal-th" x="340" y="230" text-anchor="middle" dominant-baseline="central">Philosophy interpreter</text><text class="teal-ts" x="340" y="248" text-anchor="middle" dominant-baseline="central">Produces typed interpretation</text>
-<line class="arr" x1="340" y1="266" x2="340" y2="294" marker-end="url(#a)"/>
-<rect class="box" x="180" y="296" width="320" height="56" rx="8"/><text class="th" x="340" y="316" text-anchor="middle" dominant-baseline="central">Creative direction</text><text class="ts" x="340" y="334" text-anchor="middle" dominant-baseline="central">One to three bounded candidates</text>
-<line class="arr" x1="340" y1="352" x2="340" y2="380" marker-end="url(#a)"/>
-<rect class="box" x="180" y="382" width="320" height="56" rx="8"/><text class="th" x="340" y="402" text-anchor="middle" dominant-baseline="central">Skill executor</text><text class="ts" x="340" y="420" text-anchor="middle" dominant-baseline="central">Operationally valid artefact</text>
-<line class="arr" x1="340" y1="438" x2="340" y2="466" marker-end="url(#a)"/>
-<rect class="box" x="180" y="468" width="320" height="56" rx="8"/><text class="th" x="340" y="488" text-anchor="middle" dominant-baseline="central">Validation and conformance</text><text class="ts" x="340" y="506" text-anchor="middle" dominant-baseline="central">Format, facts, semantic fit</text>
-<line class="arr" x1="340" y1="524" x2="340" y2="552" marker-end="url(#a)"/>
-<rect class="coral" x="180" y="554" width="320" height="56" rx="8"/><text class="coral-th" x="340" y="574" text-anchor="middle" dominant-baseline="central">Human review</text><text class="coral-ts" x="340" y="592" text-anchor="middle" dominant-baseline="central">Single approval gate</text>
-<line class="arr" x1="340" y1="610" x2="340" y2="638" marker-end="url(#a)"/>
-<rect class="box" x="180" y="640" width="320" height="56" rx="8"/><text class="th" x="340" y="660" text-anchor="middle" dominant-baseline="central">Publication and audit</text><text class="ts" x="340" y="678" text-anchor="middle" dominant-baseline="central">Approved payload, versions logged</text>
-<rect class="teal" x="180" y="716" width="14" height="14" rx="3"/><text class="ts" x="202" y="723" dominant-baseline="central">Persisted interpretation (review target)</text>
-<rect class="coral" x="470" y="716" width="14" height="14" rx="3"/><text class="ts" x="492" y="723" dominant-baseline="central">Single human gate</text>
+<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+<rect class="box" x="140" y="20" width="400" height="48" rx="8"/><text class="num" x="160" y="44" dominant-baseline="central">1</text><text class="th" x="340" y="36" text-anchor="middle" dominant-baseline="central">Trigger</text><text class="ts" x="340" y="54" text-anchor="middle" dominant-baseline="central">A relevant event occurs</text>
+<line class="arr" x1="340" y1="68" x2="340" y2="88" marker-end="url(#a)"/>
+<rect class="box" x="140" y="90" width="400" height="48" rx="8"/><text class="num" x="160" y="114" dominant-baseline="central">2</text><text class="th" x="340" y="106" text-anchor="middle" dominant-baseline="central">Context Builder</text><text class="ts" x="340" y="124" text-anchor="middle" dominant-baseline="central">Collects and normalises verified observations; no framing</text>
+<line class="arr" x1="340" y1="138" x2="340" y2="158" marker-end="url(#a)"/>
+<rect class="teal" x="140" y="160" width="400" height="48" rx="8"/><text class="num" x="160" y="184" dominant-baseline="central">3</text><text class="teal-th" x="340" y="176" text-anchor="middle" dominant-baseline="central">Philosophy Interpreter</text><text class="teal-ts" x="340" y="194" text-anchor="middle" dominant-baseline="central">Produces the typed, persisted interpretation</text>
+<line class="arr" x1="340" y1="208" x2="340" y2="228" marker-end="url(#a)"/>
+<rect class="amber" x="140" y="230" width="400" height="56" rx="8"/><text class="num" x="160" y="258" dominant-baseline="central">4</text><text class="amber-th" x="340" y="246" text-anchor="middle" dominant-baseline="central">Early Interpretation Checkpoint</text><text class="amber-ts" x="340" y="265" text-anchor="middle" dominant-baseline="central">Reject, revise, or permit the premise</text><text class="note" x="340" y="279" text-anchor="middle" dominant-baseline="central">NON-AUTHORISING: cannot approve publication</text>
+<line class="arr" x1="340" y1="286" x2="340" y2="306" marker-end="url(#a)"/>
+<rect class="box" x="140" y="308" width="400" height="48" rx="8"/><text class="num" x="160" y="332" dominant-baseline="central">5</text><text class="th" x="340" y="324" text-anchor="middle" dominant-baseline="central">Creative Direction</text><text class="ts" x="340" y="342" text-anchor="middle" dominant-baseline="central">Explores one to three bounded candidate directions</text>
+<line class="arr" x1="340" y1="356" x2="340" y2="376" marker-end="url(#a)"/>
+<rect class="box" x="140" y="378" width="400" height="48" rx="8"/><text class="num" x="160" y="402" dominant-baseline="central">6</text><text class="th" x="340" y="394" text-anchor="middle" dominant-baseline="central">Skill Executor</text><text class="ts" x="340" y="412" text-anchor="middle" dominant-baseline="central">Converts each direction into an operational artefact</text>
+<line class="arr" x1="340" y1="426" x2="340" y2="446" marker-end="url(#a)"/>
+<rect class="box" x="140" y="448" width="400" height="48" rx="8"/><text class="num" x="160" y="472" dominant-baseline="central">7</text><text class="th" x="340" y="464" text-anchor="middle" dominant-baseline="central">Deterministic Validation</text><text class="ts" x="340" y="482" text-anchor="middle" dominant-baseline="central">Checks format, facts, policy, and required elements</text>
+<line class="arr" x1="340" y1="496" x2="340" y2="516" marker-end="url(#a)"/>
+<rect class="box" x="140" y="518" width="400" height="48" rx="8"/><text class="num" x="160" y="542" dominant-baseline="central">8</text><text class="th" x="340" y="534" text-anchor="middle" dominant-baseline="central">Semantic Conformance</text><text class="ts" x="340" y="552" text-anchor="middle" dominant-baseline="central">Checks each artefact against its interpretation</text>
+<line class="arr" x1="340" y1="566" x2="340" y2="586" marker-end="url(#a)"/>
+<rect class="coral" x="140" y="588" width="400" height="56" rx="8"/><text class="num" x="160" y="616" dominant-baseline="central">9</text><text class="coral-th" x="340" y="604" text-anchor="middle" dominant-baseline="central">Human Approval</text><text class="coral-ts" x="340" y="623" text-anchor="middle" dominant-baseline="central">Selects and approves one exact bound bundle</text><text class="coral-ts" x="340" y="637" text-anchor="middle" dominant-baseline="central">THE ONLY FORMAL PUBLICATION GATE</text>
+<line class="arr" x1="340" y1="644" x2="340" y2="664" marker-end="url(#a)"/>
+<rect class="box" x="140" y="666" width="400" height="48" rx="8"/><text class="num" x="160" y="690" dominant-baseline="central">10</text><text class="th" x="340" y="682" text-anchor="middle" dominant-baseline="central">Publication Adapter</text><text class="ts" x="340" y="700" text-anchor="middle" dominant-baseline="central">Consumes approval intent; submits the approved payload</text>
+<line class="arr" x1="340" y1="714" x2="340" y2="734" marker-end="url(#a)"/>
+<rect class="box" x="140" y="736" width="400" height="56" rx="8"/><text class="num" x="160" y="764" dominant-baseline="central">11</text><text class="th" x="340" y="752" text-anchor="middle" dominant-baseline="central">Audit</text><text class="ts" x="340" y="771" text-anchor="middle" dominant-baseline="central">Records decision chain, token consumption, receipt,</text><text class="ts" x="340" y="785" text-anchor="middle" dominant-baseline="central">and observable platform state</text>
+
+<rect class="teal" x="92" y="830" width="14" height="14" rx="3"/><text class="ts" x="114" y="837" dominant-baseline="central">Persisted interpretation</text>
+<rect class="amber" x="270" y="830" width="14" height="14" rx="3"/><text class="ts" x="292" y="837" dominant-baseline="central">Early rejection only</text>
+<rect class="coral" x="448" y="830" width="14" height="14" rx="3"/><text class="ts" x="470" y="837" dominant-baseline="central">Publication approval</text>
+<text class="ts" x="340" y="866" text-anchor="middle">Failed checks return to the responsible upstream stage; they never bypass approval.</text>
 </svg>
