@@ -1,13 +1,13 @@
-.PHONY: pdf typst xelatex clean
+.PHONY: pdf tectonic xelatex clean
 
 pdf:
 	./build.sh
 
-typst:
-	ENGINE=typst ./build.sh
+tectonic:
+	LATEX_ENGINE=tectonic ./build.sh
 
 xelatex:
-	ENGINE=xelatex ./build.sh
+	LATEX_ENGINE=xelatex ./build.sh
 
 clean:
 	rm -rf build/*
