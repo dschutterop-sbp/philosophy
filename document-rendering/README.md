@@ -24,6 +24,7 @@ source and its export configuration from drifting apart.
 ./build.sh
 ```
 
+All generated artifacts are written beneath the ignored `build/` directory.
 The PDF is written to:
 
 ```text
@@ -40,7 +41,7 @@ To generate a PDF for another Markdown source with its own front matter while
 retaining the same styling, set `SOURCE`:
 
 ```bash
-SOURCE=/path/to/paper.md ./build.sh /path/to/paper.pdf
+SOURCE=/path/to/paper.md ./build.sh
 ```
 
 An alternate source without front matter may also provide `METADATA` explicitly:
@@ -63,12 +64,6 @@ Force XeLaTeX:
 ENGINE=xelatex ./build.sh
 ```
 
-Choose another output path:
-
-```bash
-./build.sh ~/Desktop/philosophy_layer.pdf
-```
-
 Override the body font:
 
 ```bash
@@ -84,3 +79,4 @@ For the supplied Typst template, `New Computer Modern` is the safest default. `A
 - `templates/latex-header.tex`: styled fallback for XeLaTeX
 - `build.sh`: single-command build
 - `Makefile`: optional convenience commands
+- `build/`: generated artifacts (ignored by Git)

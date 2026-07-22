@@ -5,15 +5,21 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The paper has one canonical editable source in the repository.  Set SOURCE
 # explicitly only when producing a PDF from another Markdown document.
 SOURCE="${SOURCE:-$ROOT/../paper/philosophy_layer.md}"
-OUTPUT="${1:-$ROOT/build/philosophy_layer.pdf}"
+BUILD_DIR="$ROOT/build"
+OUTPUT="$BUILD_DIR/philosophy_layer.pdf"
 ENGINE="${ENGINE:-auto}"
+
+if (( $# > 0 )); then
+  echo "This build has a fixed output path: $OUTPUT" >&2
+  exit 2
+fi
 
 [[ -f "$SOURCE" ]] || {
   echo "Paper source not found: $SOURCE" >&2
   exit 1
 }
 
-mkdir -p "$(dirname "$OUTPUT")"
+mkdir -p "$BUILD_DIR"
 
 require() {
   command -v "$1" >/dev/null 2>&1 || {
