@@ -21,8 +21,8 @@ text{font-family:'Helvetica Neue',Arial,sans-serif}
 <text class="teal-th" x="110" y="258" dominant-baseline="central">Preference ordering — ranks admissible options</text>
 <line x1="90" y1="274" x2="590" y2="274" stroke="#0F6E56" stroke-width="0.5" stroke-opacity="0.4"/>
 <text class="teal-t" x="110" y="289" dominant-baseline="central">1   Authorised human instruction</text>
-<text class="teal-t" x="110" y="318" dominant-baseline="central">2   Overrideable Skill defaults</text>
-<text class="teal-t" x="110" y="348" dominant-baseline="central">3   Time-bounded Strategy objectives</text>
-<text class="teal-t" x="110" y="378" dominant-baseline="central">4   Philosophy defaults and preferences</text>
+<text class="teal-t" x="110" y="318" dominant-baseline="central">2   Time-bounded Strategy objectives</text>
+<text class="teal-t" x="110" y="348" dominant-baseline="central">3   Philosophy defaults and positive preferences</text>
+<text class="teal-t" x="110" y="378" dominant-baseline="central">4   Overrideable Skill execution defaults</text>
 <text class="teal-t" x="110" y="407" dominant-baseline="central">5   Model creativity</text>
 </svg>
