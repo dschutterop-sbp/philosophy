@@ -7,10 +7,14 @@ so the PDF and the versioned paper never drift apart.
 ## 1. Install on macOS
 
 ```bash
-brew install pandoc typst
+brew install pandoc typst tectonic
 ```
 
-Typst is the preferred engine. The build script falls back to XeLaTeX when Typst is not installed.
+Pandoc generates an arXiv-compatible standalone LaTeX source. Tectonic compiles
+that source with the XeTeX engine; a conventional XeLaTeX installation is also
+supported. Typst is used only to convert the canonical SVG diagrams to portable
+vector PDF assets before LaTeX compilation, avoiding shell-escape conversion on
+arXiv.
 
 ## 2. Publication metadata
 
@@ -25,11 +29,16 @@ source and its export configuration from drifting apart.
 ```
 
 All generated artifacts are written beneath the ignored `build/` directory.
-The PDF is written to:
+The two publication artifacts are written to:
 
 ```text
+build/philosophy_layer-arxiv.tar.gz
 build/philosophy_layer.pdf
 ```
+
+The arXiv archive contains the generated `philosophy_layer.tex` and its portable
+`figures/*.pdf` dependencies. The unpacked TeX source also remains at
+`build/philosophy_layer.tex` for inspection.
 
 The equivalent Make command is:
 
@@ -52,31 +61,28 @@ SOURCE=/path/to/paper.md METADATA=/path/to/metadata.yaml ./build.sh
 
 ## Useful variants
 
-Force Typst:
+Force Tectonic:
 
 ```bash
-ENGINE=typst ./build.sh
+LATEX_ENGINE=tectonic ./build.sh
 ```
 
 Force XeLaTeX:
 
 ```bash
-ENGINE=xelatex ./build.sh
+LATEX_ENGINE=xelatex ./build.sh
 ```
 
-Override the body font:
-
-```bash
-MAIN_FONT="Avenir Next" ./build.sh
-```
-
-For the supplied Typst template, `New Computer Modern` is the safest default. `Avenir Next` gives the paper a more contemporary appearance on macOS.
+The build deliberately uses the Noto Serif, Noto Sans and Noto Sans Mono files
+from TeX Live rather than workstation fonts, so the same broad-coverage outline
+fonts are available in local and arXiv builds.
 
 ## Files
 
 - `../paper/philosophy_layer.md`: canonical publication source
-- `templates/philosophy-paper.typst`: Pandoc and Typst publication template
-- `templates/latex-header.tex`: styled fallback for XeLaTeX
+- `templates/latex-header.tex`: academic article layout and typography
+- `templates/pandoc-arxiv.lua`: presentational Pandoc transformations
+- `templates/svg-figure.typ`: deterministic SVG-to-vector-PDF wrapper
 - `build.sh`: single-command build
 - `Makefile`: optional convenience commands
 - `build/`: generated artifacts (ignored by Git)

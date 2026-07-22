@@ -1,25 +1,157 @@
+% Restrained academic article styling for the arXiv LaTeX build.
+% Content transformations (abstract placement, table widths and SVG-to-PDF
+% references) live in pandoc-arxiv.lua; the canonical Markdown is untouched.
 \usepackage{microtype}
+\usepackage{newunicodechar}
+% Use TeX Live font files directly so the build is independent of workstation
+% font installation while retaining broad Unicode coverage.
+\setmainfont{NotoSerif-Regular.ttf}[
+  BoldFont=NotoSerif-Bold.ttf,
+  ItalicFont=NotoSerif-Italic.ttf,
+  BoldItalicFont=NotoSerif-BoldItalic.ttf]
+\setsansfont{NotoSans-Regular.ttf}[
+  BoldFont=NotoSans-Bold.ttf,
+  ItalicFont=NotoSans-Italic.ttf,
+  BoldItalicFont=NotoSans-BoldItalic.ttf,
+  Scale=MatchLowercase]
+\setmonofont{NotoSansMono-Regular.ttf}[
+  BoldFont=NotoSansMono-Bold.ttf,
+  Scale=MatchLowercase]
+\newunicodechar{→}{\ensuremath{\rightarrow}}
 \usepackage{fancyhdr}
 \usepackage{xcolor}
 \usepackage{titlesec}
+\usepackage{titling}
 \usepackage{fvextra}
 \usepackage{xurl}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{needspace}
+\usepackage[section]{placeins}
+\usepackage{etoolbox}
+
+\definecolor{PaperInk}{HTML}{17191C}
 \definecolor{PaperNavy}{HTML}{172033}
-\definecolor{PaperGrey}{HTML}{596273}
-\titleformat{\section}{\Large\sffamily\bfseries\color{PaperNavy}}{}{0pt}{}
-\titleformat{\subsection}{\large\sffamily\bfseries\color{PaperNavy}}{}{0pt}{}
-\titleformat{\subsubsection}{\normalsize\sffamily\bfseries}{}{0pt}{}
-\titlespacing*{\section}{0pt}{2.2ex plus .5ex}{1.0ex}
-\titlespacing*{\subsection}{0pt}{1.8ex plus .4ex}{.8ex}
+\definecolor{PaperGrey}{HTML}{60656D}
+\definecolor{CodeBg}{HTML}{F5F6F7}
+\definecolor{CodeRule}{HTML}{A9AFB7}
+
+% 11 pt article type is 10.95 pt; this gives a compact 1.20 line-height.
+\linespread{0.96}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.44em plus 0.08em minus 0.04em}
+\setlength{\emergencystretch}{3em}
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\brokenpenalty=7500
+
+% Compact sans-serif heading hierarchy with no decorative rules.
+\titleformat{\section}
+  {\sffamily\bfseries\color{PaperInk}\fontsize{14.5}{17}\selectfont}
+  {}{0pt}{}
+\titleformat{\subsection}
+  {\sffamily\bfseries\color{PaperInk}\fontsize{12.4}{14.6}\selectfont}
+  {}{0pt}{}
+\titleformat{\subsubsection}
+  {\sffamily\bfseries\color{PaperInk}\normalsize}
+  {}{0pt}{}
+\titlespacing*{\section}{0pt}{1.65ex plus .35ex minus .15ex}{.70ex}
+\titlespacing*{\subsection}{0pt}{1.30ex plus .30ex minus .12ex}{.48ex}
+\titlespacing*{\subsubsection}{0pt}{1.05ex plus .20ex minus .10ex}{.35ex}
+\pretocmd{\section}{\Needspace{4\baselineskip}}{}{}
+\pretocmd{\subsection}{\Needspace{3\baselineskip}}{}{}
+\pretocmd{\subsubsection}{\Needspace{2.5\baselineskip}}{}{}
+
+% Conventional first page: compact, left-aligned, and followed immediately by
+% the abstract. The licence supplied as metadata appears as a title footnote.
+\setlength{\droptitle}{-4.5em}
+\pretitle{\begin{flushleft}\sffamily\bfseries\color{PaperInk}\fontsize{22}{25}\selectfont}
+\posttitle{\par\end{flushleft}\vspace{-0.55em}}
+\preauthor{\begin{flushleft}\sffamily\normalsize\color{PaperInk}}
+\postauthor{\par\end{flushleft}\vspace{-0.85em}}
+\predate{\begin{flushleft}\sffamily\small\color{PaperGrey}}
+\postdate{\par\end{flushleft}\vspace{0.55em}}
+\makeatletter
+\providecommand{\subtitle}[1]{%
+  \apptocmd{\@title}{\par\vspace{0.55em}{\normalfont\sffamily\fontsize{12.4}{14.8}\selectfont #1\par}}{}{}
+}
+\makeatother
+\renewenvironment{abstract}
+  {\par\begingroup\small\noindent{\sffamily\bfseries\fontsize{11}{13}\selectfont Abstract}\par\vspace{0.38em}}
+  {\par\endgroup}
+\AtEndEnvironment{abstract}{\clearpage}
+
+% One compact, navigable contents page (the build limits it to two levels).
+\makeatletter
+\renewcommand*\l@section[2]{{%
+  \vspace{.18em}\sffamily\bfseries\fontsize{9.2}{10.8}\selectfont
+  \@dottedtocline{1}{0pt}{0pt}{#1}{#2}}}
+\renewcommand*\l@subsection[2]{{%
+  \sffamily\fontsize{8.9}{10.5}\selectfont
+  \@dottedtocline{2}{1.35em}{0pt}{#1}{#2}}}
+\renewcommand{\@dotsep}{2.2}
+\makeatother
+\apptocmd{\tableofcontents}{\clearpage}{}{}
+
+% Clean page furniture.
 \pagestyle{fancy}
 \fancyhf{}
-\fancyfoot[C]{\thepage}
+\fancyfoot[C]{\sffamily\fontsize{8.5}{10}\selectfont\color{PaperGrey}\thepage}
 \renewcommand{\headrulewidth}{0pt}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
-\setlength{\emergencystretch}{3em}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[C]{\sffamily\fontsize{8.5}{10}\selectfont\color{PaperGrey}\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}}
 
-\makeatletter
-\pretocmd{\maketitle}{\begin{titlepage}\thispagestyle{empty}}{}{}
-\apptocmd{\maketitle}{\thispagestyle{empty}\end{titlepage}}{}{}
-\apptocmd{\tableofcontents}{\clearpage}{}{}
-\makeatother
+% Wrapped, compact code blocks with a restrained grey field and left rule.
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{%
+  breaklines=true,breakanywhere=true,commandchars=\\\{\},
+  fontsize=\fontsize{8.6}{10.4}\selectfont,
+  frame=leftline,framerule=.65pt,framesep=5pt,
+  rulecolor=\color{CodeRule},fillcolor=\color{CodeBg},
+  xleftmargin=8pt,xrightmargin=2pt}
+\RecustomVerbatimEnvironment{verbatim}{Verbatim}{%
+  breaklines=true,breakanywhere=true,
+  fontsize=\fontsize{8.6}{10.4}\selectfont,
+  frame=leftline,framerule=.65pt,framesep=5pt,
+  rulecolor=\color{CodeRule},fillcolor=\color{CodeBg},
+  xleftmargin=8pt,xrightmargin=2pt}
+\newcommand{\BreakableUnderscore}{\char`\_\allowbreak}
+\let\PaperTexttt\texttt
+\renewcommand{\texttt}[1]{\begingroup\let\_\BreakableUnderscore\PaperTexttt{#1}\endgroup}
+
+% Quotations remain distinct through scale and indentation, without ornament.
+\renewenvironment{quote}
+  {\list{}{\leftmargin=1.45em\rightmargin=.55em\topsep=.45em\parsep=.25em}\item\relax\small}
+  {\endlist}
+
+% Academic tables: booktabs rules, ragged-right cells supplied by the Lua
+% filter, and compact type. No vertical rules are introduced.
+\AtBeginEnvironment{longtable}{%
+  \fontsize{8.9}{10.5}\selectfont
+  \setlength{\tabcolsep}{4.2pt}
+  \renewcommand{\arraystretch}{1.12}}
+\setlength{\LTpre}{0.65em}
+\setlength{\LTpost}{0.65em}
+
+% Compact lists and bibliography. PaperReferences is emitted by the filter
+% around the manuscript's existing ordered reference list.
+\setlist{leftmargin=1.55em,itemsep=.18em,parsep=0pt,topsep=.40em,partopsep=0pt}
+\newenvironment{PaperReferences}
+  {\begingroup\fontsize{9.1}{11.0}\selectfont
+   \setlength{\parskip}{0pt}%
+   \setlist[enumerate]{leftmargin=2.0em,labelsep=.55em,itemsep=.18em,parsep=0pt,topsep=.35em,align=left}}
+  {\endgroup}
+
+% Balanced vector figures and compact numbered captions.
+\captionsetup{font={small},labelfont={sf,bf},textfont={rm},
+  justification=raggedright,singlelinecheck=false,skip=5pt}
+\setlength{\textfloatsep}{1.0em plus .2em minus .15em}
+\setlength{\floatsep}{.8em plus .2em minus .15em}
+\setlength{\intextsep}{.8em plus .2em minus .15em}
+
+% Safe URL breaking and subtle, grayscale-effective links.
+\urlstyle{same}
