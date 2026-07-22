@@ -70,10 +70,10 @@ Given this factual context:
 
 `contains_alcohol` is a deterministically derived product attribute, supported here by the product catalogue rather than inferred by the Philosophy Interpreter. The distinction is between derived facts with traceable evidence and normative inferences about what those facts mean.
 
-A fully compliant result might be:
+A fully compliant result might use this caption:
 
-> Sunny today.
-> Come and enjoy a refreshing sorbet.
+> Beat the heat with our ice-cold treats.
+>
 > Aperol Spritz and Limoncello Spritz · €5
 > Contains alcohol · 18+
 
