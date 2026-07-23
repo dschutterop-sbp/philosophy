@@ -18,9 +18,10 @@ arXiv.
 
 ## 2. Publication metadata
 
-Title, author, date, language, licence and PDF metadata live in the canonical
-Markdown front matter. Keeping metadata with the paper prevents the editable
-source and its export configuration from drifting apart.
+Title, author, date, version, language, licence and PDF metadata live in the
+canonical Markdown front matter. The `version` field is the authoritative
+project version and must use `vMAJOR.MINOR.PATCH`; package and citation metadata
+are checked against it with `npm run version:check`.
 
 ## 3. Build
 
@@ -32,13 +33,14 @@ All generated artifacts are written beneath the ignored `build/` directory.
 The two publication artifacts are written to:
 
 ```text
-build/philosophy_layer-arxiv.tar.gz
-build/philosophy_layer.pdf
+build/philosophy_layer-arxiv_v1.0.0.tar.gz
+build/philosophy_layer_v1.0.0.pdf
 ```
 
 The arXiv archive contains the generated `philosophy_layer.tex` and its portable
 `figures/*.pdf` dependencies. The unpacked TeX source also remains at
-`build/philosophy_layer.tex` for inspection.
+`build/philosophy_layer_v1.0.0.tex` for inspection. Each future paper version
+therefore produces distinct, immutable-looking artifact names.
 
 The equivalent Make command is:
 

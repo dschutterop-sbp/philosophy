@@ -1,10 +1,13 @@
 {
   "name": "il-tiratore-philosophy-layer",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node server/server.js",
-    "test": "node --test"
+    "test": "npm run version:check && node --test",
+    "version:check": "node scripts/version.mjs --check",
+    "version:sync": "node scripts/version.mjs --sync",
+    "build:paper": "npm run version:check && make -C document-rendering pdf"
   }
 }
