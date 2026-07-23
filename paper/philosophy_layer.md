@@ -25,6 +25,8 @@ toc-title: Contents
 
 # Abstract {.unnumbered .unlisted}
 
+**Version:** v1.0.0
+
 **DOI:** [10.5281/zenodo.21504906](https://doi.org/10.5281/zenodo.21504906)
 
 A common AI application pattern combines **context** (the facts available to the system), a **skill** (structured instructions defining what the system may do) and **guardrails** (checks that enforce declared constraints).
