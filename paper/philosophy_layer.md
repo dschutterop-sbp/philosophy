@@ -4,6 +4,7 @@ subtitle: "An Accountable and Traceable Architecture for Organisational AI Judge
 author: "Daniel Schutterop"
 date: "July 2026"
 version: "v1.0.0"
+doi: "10.5281/zenodo.21504906"
 lang: en-GB
 rights: "Copyright © 2026 Daniel Schutterop. Licensed under CC BY 4.0."
 keywords:
@@ -23,6 +24,8 @@ toc-title: Contents
 ---
 
 # Abstract {.unnumbered .unlisted}
+
+**DOI:** [10.5281/zenodo.21504906](https://doi.org/10.5281/zenodo.21504906)
 
 A common AI application pattern combines **context** (the facts available to the system), a **skill** (structured instructions defining what the system may do) and **guardrails** (checks that enforce declared constraints).
 

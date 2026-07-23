@@ -11,6 +11,7 @@ license: Apache-2.0
 preferred-citation:
   type: article
   title: "The Philosophy Layer: An Accountable and Traceable Architecture for Organisational AI Judgement"
+  doi: 10.5281/zenodo.21504906
   authors:
     - family-names: Schutterop
       given-names: Daniel
