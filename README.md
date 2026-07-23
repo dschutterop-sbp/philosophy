@@ -10,7 +10,9 @@ This is an inspectable implementation of the paper’s decision chain. It is del
 The paper is maintained as the repository’s canonical, editable source at
 [paper/philosophy_layer.md](paper/philosophy_layer.md). It is intentionally
 versioned alongside this reference implementation so that interface evidence
-and the paper’s decision-trace claims can evolve together.
+and the paper’s decision-trace claims can evolve together. Its frontmatter
+`version` is the canonical project version; `npm run version:sync` propagates
+that value to package and citation metadata.
 The running reference implementation links each review stage and decision-trace
 event to its relevant paper section.
 
@@ -27,7 +29,7 @@ make -C document-rendering pdf
 ```
 
 The generated file is
-`document-rendering/build/philosophy_layer.pdf`.
+`document-rendering/build/philosophy_layer_v1.0.0.pdf`.
 See the [document-rendering README](document-rendering/README.md)
 for font, engine, output-path, and alternate-source options.
 

@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use The Philosophy Layer, please cite it as below."
 title: "The Philosophy Layer"
 type: software
-version: 0.1.0
-date-released: 2026-07-20
+version: v1.0.0
+date-released: 2026-07-23
 authors:
   - family-names: Schutterop
     given-names: Daniel
@@ -14,5 +14,6 @@ preferred-citation:
   authors:
     - family-names: Schutterop
       given-names: Daniel
-  date-released: 2026-07-20
+  date-released: 2026-07-23
+  version: v1.0.0
   license: CC-BY-4.0

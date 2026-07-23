@@ -2,6 +2,14 @@
 
 All notable changes to this reference implementation are documented here.
 
+## 1.0.0 - 2026-07-23
+
+- Establishes the paper frontmatter as the canonical project version.
+- Adds consistency checking and synchronisation for package, lockfile and
+  citation metadata.
+- Names PDF, generated TeX and arXiv artifacts using the `<artefact>_vMAJOR.MINOR.PATCH`
+  convention.
+
 ## 0.2.0 - 2026-07-21
 
 Broadens the reference to cover the full set of paper mechanisms.

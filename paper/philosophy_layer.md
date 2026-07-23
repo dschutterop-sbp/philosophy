@@ -3,6 +3,7 @@ title: "The Philosophy Layer"
 subtitle: "An Accountable and Traceable Architecture for Organisational AI Judgement"
 author: "Daniel Schutterop"
 date: "July 2026"
+version: "v1.0.0"
 lang: en-GB
 rights: "Copyright © 2026 Daniel Schutterop. Licensed under CC BY 4.0."
 keywords:

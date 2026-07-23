@@ -6,9 +6,6 @@ WORKSPACE_ROOT="$(cd "$ROOT/.." && pwd)"
 SOURCE="${SOURCE:-$ROOT/../paper/philosophy_layer.md}"
 BUILD_DIR="$ROOT/build"
 FIGURE_DIR="$BUILD_DIR/figures"
-TEX_OUTPUT="$BUILD_DIR/philosophy_layer.tex"
-PDF_OUTPUT="$BUILD_DIR/philosophy_layer.pdf"
-ARXIV_OUTPUT="$BUILD_DIR/philosophy_layer-arxiv.tar.gz"
 LATEX_ENGINE="${LATEX_ENGINE:-auto}"
 
 if (( $# > 0 )); then
@@ -20,6 +17,31 @@ fi
   echo "Paper source not found: $SOURCE" >&2
   exit 1
 }
+
+PAPER_VERSION="$(
+  sed -n '/^---$/,/^---$/p' "$SOURCE" |
+    sed -nE 's/^version:[[:space:]]*["'\"']?(v[0-9]+\.[0-9]+\.[0-9]+)["'\"']?[[:space:]]*$/\1/p' |
+    head -n 1
+)"
+if [[ -z "$PAPER_VERSION" && -n "${METADATA:-}" ]]; then
+  [[ -f "$METADATA" ]] || {
+    echo "Metadata file not found: $METADATA" >&2
+    exit 1
+  }
+  PAPER_VERSION="$(
+    sed -nE 's/^version:[[:space:]]*["'\"']?(v[0-9]+\.[0-9]+\.[0-9]+)["'\"']?[[:space:]]*$/\1/p' "$METADATA" |
+      head -n 1
+  )"
+fi
+[[ "$PAPER_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+  echo "Paper frontmatter or METADATA must declare a SemVer version such as version: \"v1.0.0\"" >&2
+  exit 1
+}
+
+ARTIFACT_STEM="philosophy_layer_$PAPER_VERSION"
+TEX_OUTPUT="$BUILD_DIR/$ARTIFACT_STEM.tex"
+PDF_OUTPUT="$BUILD_DIR/$ARTIFACT_STEM.pdf"
+ARXIV_OUTPUT="$BUILD_DIR/philosophy_layer-arxiv_$PAPER_VERSION.tar.gz"
 
 require() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -97,16 +119,16 @@ fi
 case "$LATEX_ENGINE" in
   tectonic)
     require tectonic
-    (cd "$BUILD_DIR" && tectonic --keep-logs --synctex philosophy_layer.tex)
+    (cd "$BUILD_DIR" && tectonic --keep-logs --synctex "$ARTIFACT_STEM.tex")
     ;;
   xelatex)
     require xelatex
-    (cd "$BUILD_DIR" && xelatex -interaction=nonstopmode -halt-on-error philosophy_layer.tex)
-    (cd "$BUILD_DIR" && xelatex -interaction=nonstopmode -halt-on-error philosophy_layer.tex)
+    (cd "$BUILD_DIR" && xelatex -interaction=nonstopmode -halt-on-error "$ARTIFACT_STEM.tex")
+    (cd "$BUILD_DIR" && xelatex -interaction=nonstopmode -halt-on-error "$ARTIFACT_STEM.tex")
     ;;
   *)
     if [[ -x "$LATEX_ENGINE" && "$(basename "$LATEX_ENGINE")" == tectonic ]]; then
-      (cd "$BUILD_DIR" && "$LATEX_ENGINE" --keep-logs --synctex philosophy_layer.tex)
+      (cd "$BUILD_DIR" && "$LATEX_ENGINE" --keep-logs --synctex "$ARTIFACT_STEM.tex")
     else
       echo "Unknown LATEX_ENGINE '$LATEX_ENGINE'. Use auto, tectonic, xelatex or a Tectonic path." >&2
       exit 2
@@ -119,7 +141,7 @@ esac
   exit 1
 }
 
-(cd "$BUILD_DIR" && COPYFILE_DISABLE=1 tar -czf "$(basename "$ARXIV_OUTPUT")" philosophy_layer.tex figures)
+(cd "$BUILD_DIR" && COPYFILE_DISABLE=1 tar -czf "$(basename "$ARXIV_OUTPUT")" "$ARTIFACT_STEM.tex" figures)
 
 [[ -s "$ARXIV_OUTPUT" ]] || {
   echo "Build did not produce $ARXIV_OUTPUT" >&2
