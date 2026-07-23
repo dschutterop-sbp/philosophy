@@ -2,6 +2,7 @@
 
 [![Code license: Apache-2.0](https://img.shields.io/badge/code-Apache--2.0-blue.svg)](LICENSE)
 [![Paper license: CC BY 4.0](https://img.shields.io/badge/paper-CC%20BY%204.0-lightgrey.svg)](PAPER-LICENSE.md)
+[![Paper DOI: 10.5281/zenodo.21504906](https://zenodo.org/badge/DOI/10.5281/zenodo.21504906.svg)](https://doi.org/10.5281/zenodo.21504906)
 
 This is an inspectable implementation of the paper’s decision chain. It is deliberately a review system, not a publisher: the final action is **Approve for publication**, which produces a short-lived, exact-state approval record for a separate publisher to verify.
 
@@ -57,9 +58,11 @@ monolithic step for review) is the research agenda, not a result in this repo.
 
 The reference implementation is licensed under [Apache License 2.0](LICENSE).
 The paper source is licensed under
-[CC BY 4.0](PAPER-LICENSE.md). See [CITATION.cff](CITATION.cff) for software
-and paper citation metadata. See [PUBLICATION-CHECKLIST.md](PUBLICATION-CHECKLIST.md)
-before making a repository public.
+[CC BY 4.0](PAPER-LICENSE.md). The paper is archived at
+[doi:10.5281/zenodo.21504906](https://doi.org/10.5281/zenodo.21504906).
+See [CITATION.cff](CITATION.cff) for software and paper citation metadata. See
+[PUBLICATION-CHECKLIST.md](PUBLICATION-CHECKLIST.md) before making a repository
+public.
 
 ## What the interface demonstrates
 

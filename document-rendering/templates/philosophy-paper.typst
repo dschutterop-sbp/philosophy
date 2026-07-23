@@ -6,6 +6,7 @@ $definitions.typst()$
   authors: (),
   keywords: (),
   date: none,
+  doi: none,
   rights: none,
   cols: 1,
   margin: (x: 25mm, y: 24mm),
@@ -81,6 +82,12 @@ $definitions.typst()$
         #v(0.35em)
         #text(size: 10.5pt, fill: rgb("596273"))[#date]
       ]
+      #if doi != none [
+        #v(0.35em)
+        #text(size: 9.5pt, fill: rgb("596273"))[
+          DOI: #link("https://doi.org/" + doi)[#doi]
+        ]
+      ]
       #if rights != none [
         #v(2.5em)
         #text(size: 8.5pt, fill: rgb("687082"))[#rights]
@@ -132,6 +139,9 @@ $if(keywords)$
 $endif$
 $if(date)$
   date: "$date$",
+$endif$
+$if(doi)$
+  doi: "$doi$",
 $endif$
 $if(rights)$
   rights: [$rights$],
